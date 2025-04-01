@@ -112,8 +112,8 @@ export async function getLatestPages(limit = 5) {
       // クエリパラメータをシンプルに保つ
       const { data: pages, error } = await supabase
         .from('notion_pages')
-        .select('id,title,category,last_edited_time')
-        .order('last_edited_time', { ascending: false })
+        .select('id,title,category,created_time')
+        .order('created_time', { ascending: false })
         .limit(limit);
       
       if (error) {
@@ -125,7 +125,13 @@ export async function getLatestPages(limit = 5) {
         continue;
       }
       
-      return { pages: pages || [] };
+      // created_timeをlast_edited_timeとして返すためのマッピング
+      const mappedPages = pages?.map(page => ({
+        ...page,
+        last_edited_time: page.created_time
+      })) || [];
+      
+      return { pages: mappedPages };
     } catch (error) {
       console.error(`最新ページ取得中の例外 (試行 ${retryCount + 1}/${maxRetries}):`, error);
       lastError = error;
@@ -162,7 +168,7 @@ export async function getWikiPages(params: {
       // ベースクエリ
       let query = supabase
         .from('notion_pages')
-        .select('id,title,category,last_edited_time', { count: 'exact' });
+        .select('id,title,category,created_time', { count: 'exact' });
       
       // フィルタリング
       if (category) {
@@ -179,7 +185,7 @@ export async function getWikiPages(params: {
       
       // データ取得
       const { data: pages, count, error } = await query
-        .order('last_edited_time', { ascending: false })
+        .order('created_time', { ascending: false })
         .range(from, to);
       
       if (error) {
@@ -207,8 +213,14 @@ export async function getWikiPages(params: {
         new Set(categoryData.map(item => item.category).filter(Boolean))
       );
       
+      // created_timeをlast_edited_timeとして返すためのマッピング
+      const mappedPages = pages?.map(page => ({
+        ...page,
+        last_edited_time: page.created_time
+      })) || [];
+      
       return {
-        pages: pages || [],
+        pages: mappedPages,
         total: count || 0,
         page,
         limit,
@@ -291,7 +303,7 @@ export async function getPageDetail(id: string) {
           .select('id,title,category')
           .eq('category', page.category)
           .not('id', 'eq', id)
-          .order('last_edited_time', { ascending: false })
+          .order('created_time', { ascending: false })
           .limit(5);
         
         if (relatedError) {
@@ -302,8 +314,14 @@ export async function getPageDetail(id: string) {
         }
       }
       
+      // last_edited_timeがない場合の対応
+      const enhancedPage = {
+        ...page,
+        last_edited_time: page.created_time // created_timeをlast_edited_timeとして使用
+      };
+      
       return {
-        page,
+        page: enhancedPage,
         blocks: blocks || [],
         relatedPages
       };

@@ -203,7 +203,13 @@ export async function getPageDetail(id: string) {
     }
     
     // 関連ページを取得（同じカテゴリのページ）
-    let relatedPages = [];
+    interface RelatedPage {
+      id: string;
+      title: string;
+      category?: string;
+    }
+    
+    let relatedPages: RelatedPage[] = [];
     if (page.category) {
       const { data: related, error: relatedError } = await supabase
         .from('notion_pages')

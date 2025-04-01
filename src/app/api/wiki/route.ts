@@ -52,6 +52,10 @@ export async function GET(request: NextRequest) {
   
   try {
     const supabase = createSupabaseClient();
+    console.log('Supabase接続設定:', {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    });
     
     let query = supabase
       .from('notion_pages')
@@ -74,9 +78,9 @@ export async function GET(request: NextRequest) {
       .range(from, to);
       
     if (error) {
-      console.error('Supabaseエラー:', error);
+      console.error('Supabaseエラー詳細:', error);
       return NextResponse.json(
-        { error: 'ページの取得に失敗しました' }, 
+        { error: 'ページの取得に失敗しました', details: error.message, code: error.code }, 
         { status: 500 }
       );
     }
@@ -88,9 +92,9 @@ export async function GET(request: NextRequest) {
       .not('category', 'is', null);
       
     if (categoryError) {
-      console.error('カテゴリ取得エラー:', categoryError);
+      console.error('カテゴリ取得エラー詳細:', categoryError);
       return NextResponse.json(
-        { error: 'カテゴリの取得に失敗しました' }, 
+        { error: 'カテゴリの取得に失敗しました', details: categoryError.message, code: categoryError.code }, 
         { status: 500 }
       );
     }
@@ -111,8 +115,9 @@ export async function GET(request: NextRequest) {
       categories
     });
   } catch (error) {
-    console.error('APIエラー:', error);
+    console.error('APIエラー詳細:', error);
     return NextResponse.json(
+      { error: 'サーバーエラーが発生しました', details: error instanceof Error ? error.message : String(error) }, 
       { error: 'サーバーエラーが発生しました' }, 
       { status: 500 }
     );

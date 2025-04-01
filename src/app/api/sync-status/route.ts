@@ -6,6 +6,10 @@ export const dynamic = 'force-dynamic'; // 常に動的に生成
 export async function GET() {
   try {
     const supabase = createSupabaseClient();
+    console.log('Supabase接続設定:', {
+      url: process.env.NEXT_PUBLIC_SUPABASE_URL,
+      hasAnonKey: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    });
     
     // 総ページ数の取得
     const { count: totalPages, error: pagesError } = await supabase
@@ -13,8 +17,8 @@ export async function GET() {
       .select('*', { count: 'exact', head: true });
     
     if (pagesError) {
-      console.error('ページ数取得エラー:', pagesError);
-      return NextResponse.json({ error: 'ページ数の取得に失敗しました' }, { status: 500 });
+      console.error('ページ数取得エラー詳細:', pagesError);
+      return NextResponse.json({ error: 'ページ数の取得に失敗しました', details: pagesError.message, code: pagesError.code }, { status: 500 });
     }
     
     // 最新の同期情報の取得
@@ -25,8 +29,8 @@ export async function GET() {
       .limit(1);
     
     if (syncError) {
-      console.error('同期情報取得エラー:', syncError);
-      return NextResponse.json({ error: '同期情報の取得に失敗しました' }, { status: 500 });
+      console.error('同期情報取得エラー詳細:', syncError);
+      return NextResponse.json({ error: '同期情報の取得に失敗しました', details: syncError.message, code: syncError.code }, { status: 500 });
     }
     
     // カテゴリごとのページ数を取得
@@ -35,8 +39,8 @@ export async function GET() {
       .select('category');
     
     if (categoryError) {
-      console.error('カテゴリ情報取得エラー:', categoryError);
-      return NextResponse.json({ error: 'カテゴリ情報の取得に失敗しました' }, { status: 500 });
+      console.error('カテゴリ情報取得エラー詳細:', categoryError);
+      return NextResponse.json({ error: 'カテゴリ情報の取得に失敗しました', details: categoryError.message, code: categoryError.code }, { status: 500 });
     }
     
     // カテゴリごとのページ数を計算
@@ -75,7 +79,7 @@ export async function GET() {
       categoryStats
     });
   } catch (error) {
-    console.error('APIエラー:', error);
-    return NextResponse.json({ error: 'サーバーエラーが発生しました' }, { status: 500 });
+    console.error('APIエラー詳細:', error);
+    return NextResponse.json({ error: 'サーバーエラーが発生しました', details: error instanceof Error ? error.message : String(error) }, { status: 500 });
   }
 } 

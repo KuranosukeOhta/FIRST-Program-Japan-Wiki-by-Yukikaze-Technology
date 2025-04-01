@@ -63,13 +63,29 @@ async function getWikiPages(searchParams: { [key: string]: string | string[] | u
   }
   
   try {
+    // ベースURLが設定されていない場合はダミーデータを返す
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    if (!baseUrl) {
+      console.warn('NEXT_PUBLIC_BASE_URL が設定されていません。ダミーデータを使用します。');
+      // ダミーデータを返す
+      return {
+        pages: [],
+        total: 0,
+        page: 1,
+        limit: 10,
+        totalPages: 0,
+        categories: []
+      };
+    }
+    
     // クエリパラメータの構築
     const params = new URLSearchParams();
     if (category) params.append('category', category);
     if (search) params.append('search', search);
     params.append('page', page.toString());
     
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/wiki?${params.toString()}`, {
+    // 完全なURLを使用
+    const res = await fetch(`${baseUrl}/api/wiki?${params.toString()}`, {
       next: { revalidate: 60 } // 1分ごとに再検証
     });
     

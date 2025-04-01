@@ -124,7 +124,16 @@ async function getPageDetail(id: string) {
   }
   
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/wiki/${id}`, {
+    // ベースURLが設定されていない場合はダミーデータを返す
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    if (!baseUrl) {
+      console.warn('NEXT_PUBLIC_BASE_URL が設定されていません。ダミーデータを使用します。');
+      // 開発モードのダミーデータを返す
+      return getPageDetail(id);
+    }
+    
+    // 完全なURLを使用
+    const res = await fetch(`${baseUrl}/api/wiki/${id}`, {
       next: { revalidate: 60 } // 1分ごとに再検証
     });
     

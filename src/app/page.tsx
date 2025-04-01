@@ -1,7 +1,29 @@
 import Link from 'next/link';
 import { ArrowRight, BookOpen, RefreshCw, Tag } from 'lucide-react';
 
-async function getWikiStats() {
+// 型定義
+interface WikiStats {
+  totalPages: number;
+  latestSync: {
+    status: string;
+    last_sync_time: string;
+    pages_synced: number;
+    blocks_synced: number;
+  } | null;
+  timeSinceLastSync: string | null;
+  categoryStats: Record<string, number>;
+}
+
+interface LatestPages {
+  pages: {
+    id: string;
+    title: string;
+    category: string;
+    last_edited_time: string;
+  }[];
+}
+
+async function getWikiStats(): Promise<WikiStats> {
   // 本番環境ではAPI呼び出しになる
   // クライアント側の開発時はダミーデータを返す
   if (process.env.NODE_ENV === 'development') {
@@ -44,7 +66,7 @@ async function getWikiStats() {
   }
 }
 
-async function getLatestPages() {
+async function getLatestPages(): Promise<LatestPages> {
   // 本番環境ではAPI呼び出しになる
   // クライアント側の開発時はダミーデータを返す
   if (process.env.NODE_ENV === 'development') {
@@ -142,7 +164,7 @@ export default async function Home() {
             {Object.entries(stats.categoryStats || {}).map(([category, count]) => (
               <div key={category} className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded">
                 <span className="font-medium">{category}</span>
-                <span className="text-gray-600">{count}</span>
+                <span className="text-gray-600">{count as number}</span>
               </div>
             ))}
           </div>
@@ -159,7 +181,7 @@ export default async function Home() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {latestPages.pages.map((page: any) => (
+          {latestPages.pages.map((page) => (
             <Link key={page.id} href={`/wiki/${page.id}`}>
               <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 h-full hover:shadow-md transition-shadow">
                 <div className="flex justify-between items-start mb-3">

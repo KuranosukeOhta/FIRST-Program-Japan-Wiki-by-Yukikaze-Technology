@@ -173,7 +173,7 @@ const CodeBlock = ({ block }: { block: any }) => {
         {language}
       </div>
       <pre className="bg-gray-100 p-4 overflow-x-auto rounded-b">
-        <code>{text.map(t => t.plain_text).join('')}</code>
+        <code>{text.map((t: { plain_text: string }) => t.plain_text).join('')}</code>
       </pre>
     </div>
   );

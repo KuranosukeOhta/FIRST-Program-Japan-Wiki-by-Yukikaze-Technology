@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createNotionClient, extractTitle, extractCategory } from '@/lib/notion';
 import { createSupabaseAdmin } from '@/lib/supabase';
-import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import { 
+  PageObjectResponse, 
+  PartialPageObjectResponse,
+  BlockObjectResponse,
+  PartialBlockObjectResponse
+} from '@notionhq/client/build/src/api-endpoints';
 
 export async function POST(request: Request) {
   // 認証チェック
@@ -60,7 +65,18 @@ export async function POST(request: Request) {
         }
         
         // ページデータをSupabaseに保存
-        const pageData = {
+        // インデックスシグネチャを持つ型を使用
+        const pageData: {
+          id: string;
+          title: string;
+          category: string;
+          last_synced_at: string;
+          raw_data: PageObjectResponse | PartialPageObjectResponse;
+          properties: any;
+          created_time?: string;
+          last_edited_time?: string;
+          [key: string]: any;
+        } = {
           id: page.id,
           title: extractTitle(page),
           category: extractCategory(page),
@@ -71,11 +87,11 @@ export async function POST(request: Request) {
         
         // ページが完全なPageObjectResponseの場合のみ、追加のプロパティを設定
         if ('created_time' in page) {
-          pageData['created_time'] = page.created_time;
+          pageData.created_time = page.created_time;
         }
         
         if ('last_edited_time' in page) {
-          pageData['last_edited_time'] = page.last_edited_time;
+          pageData.last_edited_time = page.last_edited_time;
         }
         
         const { error: pageError } = await supabase
@@ -108,12 +124,24 @@ export async function POST(request: Request) {
         
         // 新しいブロックを挿入
         for (let i = 0; i < blocks.results.length; i++) {
-          const block = blocks.results[i];
+          const block = blocks.results[i] as BlockObjectResponse | PartialBlockObjectResponse;
           
-          const blockData = {
+          // インデックスシグネチャを持つ型を使用
+          const blockData: {
+            id: string;
+            page_id: string;
+            type: string;
+            content: any;
+            has_children: boolean;
+            sort_order: number;
+            last_synced_at: string;
+            created_time?: string;
+            last_edited_time?: string;
+            [key: string]: any;
+          } = {
             id: block.id,
             page_id: page.id,
-            type: block.type,
+            type: 'type' in block ? block.type : 'unknown',
             content: block,
             has_children: 'has_children' in block ? block.has_children : false,
             sort_order: i,
@@ -122,11 +150,11 @@ export async function POST(request: Request) {
           
           // 存在する場合のみプロパティを追加
           if ('created_time' in block) {
-            blockData['created_time'] = block.created_time;
+            blockData.created_time = block.created_time;
           }
           
           if ('last_edited_time' in block) {
-            blockData['last_edited_time'] = block.last_edited_time;
+            blockData.last_edited_time = block.last_edited_time;
           }
           
           const { error: blockError } = await supabase

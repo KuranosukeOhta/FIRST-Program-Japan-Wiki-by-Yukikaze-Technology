@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Search, Loader2, Filter, ArrowUpDown, Tag, Calendar, AlertCircle } from 'lucide-react';
 
 interface NotionPage {
@@ -30,10 +30,10 @@ function AllPages() {
     const fetchPages = async () => {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notion`,
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notion`,
           {
             headers: {
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
             },
           }
         );
@@ -301,7 +301,7 @@ function AllPages() {
               
               return (
                 <li key={page.id} className="hover:bg-gray-50">
-                  <Link to={`/page/${page.id}`} className="block p-4">
+                  <Link href={`/wiki/${page.id}`} className="block p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
                         <h2 className="text-lg font-medium text-gray-900 truncate">{title}</h2>

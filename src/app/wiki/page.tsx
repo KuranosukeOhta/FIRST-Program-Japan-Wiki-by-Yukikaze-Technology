@@ -1,7 +1,22 @@
 import Link from 'next/link';
 import { Search, Filter, RefreshCw } from 'lucide-react';
 
-async function getWikiPages(searchParams: { [key: string]: string | string[] | undefined }) {
+// 型定義
+interface WikiPageResult {
+  pages: Array<{
+    id: string;
+    title: string;
+    category: string;
+    last_edited_time: string;
+  }>;
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  categories: string[];
+}
+
+async function getWikiPages(searchParams: { [key: string]: string | string[] | undefined }): Promise<WikiPageResult> {
   // クエリパラメータを取得
   const category = searchParams.category as string || '';
   const search = searchParams.search as string || '';
@@ -35,7 +50,7 @@ async function getWikiPages(searchParams: { [key: string]: string | string[] | u
       );
     }
     
-    const categories = ['FRC', 'FTC', 'FLL', 'チュートリアル', 'イベント', 'その他'];
+    const categories: string[] = ['FRC', 'FTC', 'FLL', 'チュートリアル', 'イベント', 'その他'];
     
     return {
       pages: filteredPages,
@@ -177,7 +192,7 @@ export default async function WikiPage({
                 }}
               >
                 <option value="" disabled>カテゴリーで絞り込み</option>
-                {result.categories.map((category) => (
+                {result.categories.map((category: string) => (
                   <option key={category} value={category}>
                     {category}
                   </option>
@@ -210,7 +225,7 @@ export default async function WikiPage({
       {/* ページ一覧 */}
       {result.pages.length > 0 && (
         <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-200">
-          {result.pages.map((page: any) => (
+          {result.pages.map((page) => (
             <Link key={page.id} href={`/wiki/${page.id}`}>
               <div className="p-5 hover:bg-gray-50 transition-colors">
                 <div className="flex flex-wrap justify-between items-start gap-2 mb-2">

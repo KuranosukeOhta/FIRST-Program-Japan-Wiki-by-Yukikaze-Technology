@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Clock, Bookmark, Tag, ArrowRight } from 'lucide-react';
 
 interface NotionPage {
@@ -28,10 +28,10 @@ function HomePage() {
       try {
         // 全ページを取得
         const pagesResponse = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notion`,
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notion`,
           {
             headers: {
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
             },
           }
         );
@@ -159,14 +159,14 @@ function HomePage() {
           </p>
           <div className="flex justify-center space-x-4">
             <Link
-              to="/all-pages"
+              href="/wiki"
               className="bg-white text-indigo-600 hover:bg-gray-100 px-5 py-2 rounded-md font-medium flex items-center"
             >
               <Bookmark className="w-5 h-5 mr-2" />
               すべてのページを見る
             </Link>
             <Link
-              to="/about"
+              href="/about"
               className="bg-indigo-700 hover:bg-indigo-800 text-white px-5 py-2 rounded-md font-medium"
             >
               このWikiについて
@@ -183,7 +183,7 @@ function HomePage() {
             最近の更新
           </h2>
           <Link
-            to="/all-pages"
+            href="/wiki"
             className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center"
           >
             すべて見る
@@ -195,7 +195,7 @@ function HomePage() {
             recentPages.map((page) => (
               <Link
                 key={page.id}
-                to={`/page/${page.id}`}
+                href={`/wiki/${page.id}`}
                 className="block p-3 hover:bg-gray-50 rounded-md border border-gray-100 transition-colors"
               >
                 <div className="font-medium text-gray-900">{getPageTitle(page)}</div>
@@ -222,7 +222,7 @@ function HomePage() {
                 {category.name}
               </h2>
               <Link
-                to={`/category/${encodeURIComponent(category.name)}`}
+                href={`/category/${encodeURIComponent(category.name)}`}
                 className="text-indigo-600 hover:text-indigo-800 text-sm font-medium flex items-center"
               >
                 このカテゴリを見る
@@ -233,7 +233,7 @@ function HomePage() {
               {category.pages.map((page) => (
                 <Link
                   key={page.id}
-                  to={`/page/${page.id}`}
+                  href={`/wiki/${page.id}`}
                   className="block p-2 hover:bg-gray-50 rounded-md transition-colors"
                 >
                   <div className="font-medium text-gray-900">{getPageTitle(page)}</div>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { Loader2, AlertCircle, ArrowRight } from 'lucide-react';
 
 interface NotionPage {
@@ -17,16 +17,16 @@ function NotionList() {
   const [data, setData] = useState<NotionData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     const fetchNotionData = async () => {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notion`,
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notion`,
           {
             headers: {
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
             },
           }
         );
@@ -146,7 +146,7 @@ function NotionList() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <button
-                        onClick={() => navigate(`/page/${page.id}`)}
+                        onClick={() => router.push(`/wiki/${page.id}`)}
                         className="text-indigo-600 hover:text-indigo-900 flex items-center gap-1"
                       >
                         詳細を見る

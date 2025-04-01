@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
 import { Loader2, ArrowLeft, Tag, Calendar, AlertCircle, ArrowUpDown } from 'lucide-react';
 
 interface NotionPage {
@@ -14,7 +15,8 @@ interface NotionData {
 }
 
 function CategoryPages() {
-  const { categoryName } = useParams<{ categoryName: string }>();
+  const params = useParams<{ categoryName: string }>();
+  const categoryName = params?.categoryName as string;
   const [pages, setPages] = useState<NotionPage[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,10 +29,10 @@ function CategoryPages() {
       try {
         // 全ページを取得してフロントエンドでフィルタリング
         const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notion`,
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notion`,
           {
             headers: {
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
             },
           }
         );
@@ -171,7 +173,7 @@ function CategoryPages() {
           <h3 className="text-lg font-medium">エラーが発生しました</h3>
         </div>
         <p>{error}</p>
-        <Link to="/" className="inline-flex items-center mt-4 text-red-700 hover:text-red-800 font-medium">
+        <Link href="/" className="inline-flex items-center mt-4 text-red-700 hover:text-red-800 font-medium">
           <ArrowLeft className="w-4 h-4 mr-1" />
           ホームに戻る
         </Link>
@@ -183,7 +185,7 @@ function CategoryPages() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <Link to="/" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-2">
+          <Link href="/" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-2">
             <ArrowLeft className="w-4 h-4 mr-1" />
             ホームに戻る
           </Link>
@@ -214,7 +216,7 @@ function CategoryPages() {
               
               return (
                 <li key={page.id} className="hover:bg-gray-50">
-                  <Link to={`/page/${page.id}`} className="block p-4">
+                  <Link href={`/wiki/${page.id}`} className="block p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
                         <h2 className="text-lg font-medium text-gray-900 truncate">{title}</h2>
@@ -249,9 +251,6 @@ function CategoryPages() {
         ) : (
           <div className="p-6 text-center text-gray-500">
             <p>このカテゴリーにはページがありません。</p>
-            <Link to="/all-pages" className="inline-flex items-center mt-4 text-indigo-600 hover:text-indigo-800 font-medium">
-              全ページ一覧を見る
-            </Link>
           </div>
         )}
       </div>

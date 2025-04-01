@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { Loader2, AlertCircle, ArrowLeft } from 'lucide-react';
 
 interface NotionPage {
@@ -14,8 +15,9 @@ interface NotionData {
 }
 
 function NotionPageDetail() {
-  const { pageId } = useParams();
-  const navigate = useNavigate();
+  const params = useParams();
+  const pageId = params?.pageId as string;
+  const router = useRouter();
   const [page, setPage] = useState<NotionPage | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -24,10 +26,10 @@ function NotionPageDetail() {
     const fetchPageData = async () => {
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notion`,
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notion`,
           {
             headers: {
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
             },
           }
         );
@@ -132,13 +134,13 @@ function NotionPageDetail() {
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-3xl mx-auto">
-        <button
-          onClick={() => navigate('/')}
+        <Link
+          href="/"
           className="mb-6 flex items-center gap-2 text-gray-600 hover:text-gray-900"
         >
           <ArrowLeft className="w-4 h-4" />
           一覧に戻る
-        </button>
+        </Link>
         
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="space-y-6">

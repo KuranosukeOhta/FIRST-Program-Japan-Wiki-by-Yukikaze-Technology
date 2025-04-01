@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { Menu, X, Search, BookOpen, Tag, Home, List, Loader2, Bug, Download } from 'lucide-react';
 
 interface LayoutProps {
@@ -15,7 +16,7 @@ function Layout({ children }: LayoutProps) {
   const [showDebug, setShowDebug] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
-  const location = useLocation();
+  const pathname = usePathname();
 
   // カテゴリー取得関数
   const fetchCategories = async () => {
@@ -25,10 +26,10 @@ function Layout({ children }: LayoutProps) {
     try {
       console.log(`カテゴリー取得開始 (試行: ${retryCount + 1})`);
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notion/categories`,
+        `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notion/categories`,
         {
           headers: {
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
           },
           // キャッシュを無効化
           cache: 'no-store'
@@ -139,7 +140,7 @@ function Layout({ children }: LayoutProps) {
   // ページ遷移時にサイドバーを閉じる
   useEffect(() => {
     setSidebarOpen(false);
-  }, [location.pathname]);
+  }, [pathname]);
 
   // カテゴリー再取得
   const refreshCategories = () => {
@@ -179,7 +180,7 @@ function Layout({ children }: LayoutProps) {
               )}
               <span className="sr-only">サイドバーを{sidebarOpen ? '閉じる' : '開く'}</span>
             </button>
-            <Link to="/" className="flex items-center">
+            <Link href="/" className="flex items-center">
               <span className="ml-2 text-xl font-bold text-gray-900">FIRST Program Japan Wiki</span>
             </Link>
           </div>
@@ -250,132 +251,117 @@ function Layout({ children }: LayoutProps) {
             </div>
           )}
           
-          <div className="bg-white p-3 rounded shadow-sm mb-3 text-sm">
-            <h4 className="font-medium mb-1">カテゴリー状態:</h4>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>ロード中: {loadingCategories ? 'はい' : 'いいえ'}</li>
-              <li>カテゴリー数: {categories.length}</li>
-              <li>
-                カテゴリー一覧: 
-                {categories.length > 0 ? (
-                  <ul className="pl-5 list-disc">
-                    {categories.map((cat, i) => (
-                      <li key={i}>{cat}</li>
-                    ))}
-                  </ul>
-                ) : (
-                  <span className="text-red-600 ml-2">カテゴリーなし</span>
-                )}
-              </li>
-            </ul>
-          </div>
-          
-          <div className="bg-white p-2 rounded shadow-sm text-xs overflow-auto max-h-60">
-            <pre>{debugData ? JSON.stringify(debugData, null, 2) : 'データなし'}</pre>
+          <div className="bg-white p-2 rounded text-xs font-mono overflow-auto max-h-80">
+            {debugData ? (
+              <pre>{JSON.stringify(debugData, null, 2)}</pre>
+            ) : (
+              <span className="text-gray-500">データなし</span>
+            )}
           </div>
         </div>
       )}
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* モバイルサイドバーのオーバーレイ */}
+      {/* メインコンテンツ */}
+      <div className="flex-1 flex">
+        {/* オーバーレイ */}
         {sidebarOpen && (
-          <div
-            className="fixed inset-0 z-10 bg-gray-600 bg-opacity-75 lg:hidden"
+          <div 
+            className="fixed inset-0 bg-gray-600 bg-opacity-75 z-20 lg:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
-
+        
         {/* サイドバー */}
         <aside
-          className={`
-            fixed inset-y-0 left-0 z-20 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:h-auto lg:w-64 lg:flex-shrink-0
-            ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
-          `}
+          className={`fixed inset-y-0 left-0 z-30 w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 ${
+            sidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
         >
-          <div className="h-full overflow-y-auto scrollbar-hide flex flex-col">
-            <div className="py-4 flex-1">
-              <nav className="px-3 space-y-1">
-                <Link
-                  to="/"
-                  className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-900 hover:bg-gray-100"
-                >
-                  <Home className="mr-3 h-5 w-5 text-gray-500" />
-                  ホーム
-                </Link>
-                <div>
-                  <h3 className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    カテゴリー {categories.length > 0 && <span className="ml-1">({categories.length})</span>}
-                  </h3>
-                  <div className="space-y-1">
-                    {loadingCategories ? (
-                      <div className="px-2 py-2 text-sm text-gray-500 ml-3 flex items-center">
-                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        読み込み中...
-                      </div>
-                    ) : categories.length > 0 ? (
-                      categories.map((category, index) => (
-                        <Link
-                          key={`${category}-${index}`}
-                          to={`/category/${encodeURIComponent(category)}`}
-                          className="group flex items-center px-2 py-2 text-sm font-medium rounded-md text-gray-700 hover:text-gray-900 hover:bg-gray-100 ml-3"
-                        >
-                          <Tag className="mr-3 h-4 w-4 text-gray-400" />
-                          {category}
-                        </Link>
-                      ))
-                    ) : (
-                      <div className="px-2 py-2 text-sm text-gray-500 ml-3 flex items-center">
-                        <Tag className="mr-3 h-4 w-4 text-gray-400" />
-                        カテゴリーがありません
-                        {fetchError && <span className="ml-1 text-xs text-red-500">(エラー)</span>}
-                      </div>
-                    )}
-                    
-                    {/* カテゴリーがなくてエラーもない場合は再試行ボタンを表示 */}
-                    {!loadingCategories && categories.length === 0 && !fetchError && (
-                      <button
-                        onClick={refreshCategories}
-                        className="mt-2 ml-3 text-xs text-blue-500 hover:text-blue-700 flex items-center"
-                      >
-                        <Loader2 className="h-3 w-3 mr-1" />
-                        再読み込み
-                      </button>
-                    )}
-                    
-                    {/* エラー時の再試行ボタン */}
-                    {fetchError && retryCount >= 4 && (
-                      <button
-                        onClick={refreshCategories}
-                        className="mt-2 ml-3 text-xs text-red-500 hover:text-red-700 flex items-center"
-                      >
-                        <Loader2 className="h-3 w-3 mr-1" />
-                        もう一度試す
-                      </button>
-                    )}
-                  </div>
+          <div className="h-full flex flex-col overflow-y-auto">
+            <div className="flex-shrink-0 p-4 flex items-center">
+              <span className="text-lg font-bold text-gray-900">メニュー</span>
+            </div>
+            <nav className="flex-1 p-4 space-y-2">
+              <Link
+                href="/"
+                className="flex items-center px-3 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-md"
+              >
+                <Home className="h-5 w-5 mr-3" />
+                ホーム
+              </Link>
+              <Link
+                href="/wiki"
+                className="flex items-center px-3 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-md"
+              >
+                <BookOpen className="h-5 w-5 mr-3" />
+                ウィキページ一覧
+              </Link>
+              
+              {/* カテゴリーリスト */}
+              <div className="mt-6">
+                <div className="px-3 mb-2 text-sm font-semibold text-gray-600 flex items-center justify-between">
+                  <span className="flex items-center">
+                    <Tag className="h-4 w-4 mr-2 text-gray-500" />
+                    カテゴリー
+                  </span>
+                  {loadingCategories ? (
+                    <Loader2 className="h-4 w-4 animate-spin text-gray-400" />
+                  ) : (
+                    <span className="text-xs text-gray-400">{categories.length}件</span>
+                  )}
                 </div>
+                
+                {fetchError && retryCount >= 4 && (
+                  <div className="mt-2 mb-3 px-3 text-xs text-red-600">
+                    カテゴリーの読み込みに失敗しました。
+                    <button 
+                      onClick={refreshCategories}
+                      className="text-indigo-600 hover:text-indigo-800 ml-1"
+                    >
+                      再試行
+                    </button>
+                  </div>
+                )}
+                
+                <div className="space-y-1">
+                  {categories.length > 0 ? (
+                    categories.map((category) => (
+                      <Link
+                        key={category}
+                        href={`/category/${encodeURIComponent(category)}`}
+                        className="block px-3 py-2 text-sm text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-md"
+                      >
+                        {category}
+                      </Link>
+                    ))
+                  ) : (
+                    <div className="px-3 py-2 text-sm text-gray-500">
+                      {loadingCategories ? 'ロード中...' : 'カテゴリーがありません'}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* その他のリンク */}
+              <div className="mt-6 pt-6 border-t border-gray-200">
                 <Link
-                  to="/all-pages"
-                  className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-900 hover:bg-gray-100"
+                  href="/about"
+                  className="flex items-center px-3 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-md"
                 >
-                  <List className="mr-3 h-5 w-5 text-gray-500" />
-                  全ページ一覧
-                </Link>
-                <Link
-                  to="/about"
-                  className="group flex items-center px-2 py-2 text-base font-medium rounded-md text-gray-900 hover:bg-gray-100"
-                >
-                  <BookOpen className="mr-3 h-5 w-5 text-gray-500" />
+                  <List className="h-5 w-5 mr-3" />
                   このWikiについて
                 </Link>
-              </nav>
-            </div>
+                {/* 後から追加したいリンクがある場合はここに追加 */}
+              </div>
+            </nav>
           </div>
         </aside>
 
-        {/* メインコンテンツ */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
-          <div className="max-w-7xl mx-auto">{children}</div>
+        {/* メインコンテンツエリア */}
+        <main className="flex-1 overflow-auto p-4 lg:p-8">
+          <div className="max-w-4xl mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>

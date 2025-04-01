@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams } from 'next/navigation';
+import Link from 'next/link';
 import { Calendar, ArrowLeft, Tag, Clock, AlertCircle } from 'lucide-react';
 import NotionContent from './NotionContent';
 import { CustomLoader, ProgressLoading } from '../components/Loading';
@@ -27,7 +28,8 @@ const Loading = ({ message }: { message: string }) => (
 );
 
 function PageDetail() {
-  const { id: pageId } = useParams<{ id: string }>();
+  const params = useParams();
+  const pageId = params?.id as string;
   const [page, setPage] = useState<any>(null);
   const [blocks, setBlocks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,7 +104,7 @@ function PageDetail() {
       const timestamp = new Date().getTime();
       
       // Supabase REST APIを使用してデータベースから直接取得
-      const requestUrl = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/notion_pages?id=eq.${pageId}&select=*`;
+      const requestUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/notion_pages?id=eq.${pageId}&select=*`;
       console.log(`ページデータを取得: ${requestUrl}`);
       setRequestState(prev => ({ 
         ...prev, 
@@ -115,8 +117,8 @@ function PageDetail() {
           requestUrl,
           {
             headers: {
-              'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+              'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''}`,
               'Cache-Control': 'no-cache',
               'Content-Type': 'application/json'
             }
@@ -189,7 +191,7 @@ function PageDetail() {
   // CORSが有効かどうかを確認
   const checkCORS = async () => {
     try {
-      const corsCheck = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ping?t=${new Date().getTime()}`, {
+      const corsCheck = await fetch(`${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/ping?t=${new Date().getTime()}`, {
         method: 'OPTIONS'
       });
       console.log('CORS check result:', corsCheck.status, corsCheck.ok);
@@ -231,7 +233,7 @@ function PageDetail() {
       }
       
       // Supabase REST APIを使用してデータベースから直接取得
-      const requestUrl = `${import.meta.env.VITE_SUPABASE_URL}/rest/v1/notion_blocks?page_id=eq.${pageId}&order=sort_order.asc&select=*`;
+      const requestUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/rest/v1/notion_blocks?page_id=eq.${pageId}&order=sort_order.asc&select=*`;
       
       console.log(`ブロックデータを取得: ${requestUrl}`);
       
@@ -239,8 +241,8 @@ function PageDetail() {
         requestUrl,
         {
           headers: {
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY,
-            'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+            'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+            'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''}`,
             'Cache-Control': 'no-cache',
             'Content-Type': 'application/json'
           }
@@ -382,91 +384,59 @@ function PageDetail() {
     setFetchRecursive(!fetchRecursive);
   };
 
-  // 直接Notion APIを呼び出す関数（デバッグ用）
+  // Notionから直接ブロックデータを取得（実験的機能）
   const fetchDirectFromNotion = async () => {
     try {
-      // デバッグ用なので、ハードコードされたAPIキーを使用
-      // 注意: 本番環境では絶対に使用しないでください
-      const NOTION_API_KEY = prompt('Notion API Keyを入力してください（セキュリティのため、キーは保存されません）', '');
+      setLoadingProgress(10);
+      setRequestState(prev => ({ ...prev, directApiRequestStarted: new Date() }));
       
-      if (!NOTION_API_KEY) {
-        alert('API Keyが入力されていません');
-        return;
+      // エラーが発生しない単純なNotionブロック取得API
+      const directApiRequestUrl = `/api/notion-blocks?pageId=${pageId}`;
+      
+      console.log(`Notionから直接ブロックを取得: ${directApiRequestUrl}`);
+      
+      const directResponse = await fetch(directApiRequestUrl);
+      
+      setLoadingProgress(50);
+      
+      // レスポンスのクローンを保存
+      const directResponseClone = directResponse.clone();
+      let responseText = '';
+      try {
+        responseText = await directResponseClone.text();
+        const responseJson = JSON.parse(responseText);
+        setRawApiResponse(prev => ({ ...prev, directNotionResponse: responseJson }));
+      } catch (e) {
+        setRawApiResponse(prev => ({ ...prev, directNotionResponse: responseText }));
       }
       
-      setRequestState(prev => ({ 
-        ...prev, 
-        directApiRequestUrl: `https://api.notion.com/v1/pages/${pageId}`
-      }));
+      if (!directResponse.ok) {
+        throw new Error(`Notionからの直接取得に失敗しました (${directResponse.status}): ${responseText}`);
+      }
       
-      // ブラウザのCORS制限回避のための別アプローチ
-      alert('Notion API直接アクセスを試みます (開発ツールのコンソールに出力されます)...');
+      setLoadingProgress(80);
       
-      // コンソールに実行可能なコードを出力する
-      const fetchCode = `
-// このコードをブラウザのコンソールで実行してください
-// (開発者ツール > Console タブ)
-fetch("https://api.notion.com/v1/pages/${pageId}", {
-  method: "GET",
-  headers: {
-    "Authorization": "Bearer ${NOTION_API_KEY}",
-    "Notion-Version": "2022-06-28",
-    "Content-Type": "application/json"
-  }
-})
-.then(response => response.json())
-.then(data => {
-  console.log("Notion API Response:", data);
-  // 以下のコードで結果をページに表示できます
-  window.displayNotionResponse = data;
-})
-.catch(error => {
-  console.error("Error:", error);
-});
-      `;
+      // JSONレスポンスを解析
+      const data = JSON.parse(responseText);
+      if (data.blocks) {
+        console.log(`${data.blocks.length}個のブロックを取得しました`);
+        setBlocks(data.blocks);
+        setRequestState(prev => ({ 
+          ...prev, 
+          blockCount: data.blocks.length,
+          directApiRequestEnded: new Date()
+        }));
+        setLoading(false);
+      } else {
+        throw new Error('Notionからのレスポンスに有効なブロックデータがありません');
+      }
       
-      console.log(fetchCode);
-      
-      // デモ用のランダムなデータを表示（実際のAPIレスポンスを模倣）
-      // 注意: これは実際のデータではなく、単なるデモです
-      const demoResponse = {
-        "object": "page",
-        "id": pageId || 'unknown-id',
-        "created_time": new Date().toISOString(),
-        "last_edited_time": new Date().toISOString(),
-        "created_by": { "object": "user", "id": "demo-user-id" },
-        "last_edited_by": { "object": "user", "id": "demo-user-id" },
-        "cover": null,
-        "icon": null,
-        "parent": { "type": "database_id", "database_id": "demo-database-id" },
-        "archived": false,
-        "properties": {
-          "Name": {
-            "id": "title",
-            "type": "title",
-            "title": [{ "type": "text", "text": { "content": "サンプルページ", "link": null }, "annotations": {}, "plain_text": "サンプルページ", "href": null }]
-          },
-          "カテゴリー": {
-            "id": "category",
-            "type": "select",
-            "select": { "id": "demo-select-id", "name": "サンプル", "color": "blue" }
-          }
-        },
-        "url": `https://www.notion.so/${(pageId || '').replace(/-/g, '')}`
-      };
-      
-      setRawApiResponse(prev => ({ ...prev, directNotionResponse: demoResponse }));
-      
-      // ユーザーへの指示を表示
-      setRawApiResponse(prev => ({ 
-        ...prev, 
-        directNotionError: "実際のAPIレスポンスを取得するには、ブラウザの開発者ツールのコンソールに出力されたコードを実行してください。CORSの制限により、ブラウザから直接Notion APIを呼び出すことはできません。"
-      }));
-      
-    } catch (error: any) {
-      console.error('直接APIアクセスエラー:', error);
-      setRawApiResponse(prev => ({ ...prev, directNotionError: error.toString() }));
-      alert(`直接APIアクセスエラー: ${error.message}`);
+      setLoadingProgress(100);
+    } catch (err: any) {
+      console.error('Notionからの直接取得中にエラーが発生しました:', err);
+      setError(err.message || 'Notionからのデータ取得に失敗しました');
+      setRawApiResponse(prev => ({ ...prev, directNotionError: err.message }));
+      setLoading(false);
     }
   };
 
@@ -499,8 +469,8 @@ fetch("https://api.notion.com/v1/pages/${pageId}", {
               <h4 className="font-medium">基本情報:</h4>
               <div className="text-sm font-mono bg-white p-2 rounded border">
                 <div><span className="font-bold">ページID:</span> {pageId}</div>
-                <div><span className="font-bold">Supabase URL:</span> {import.meta.env.VITE_SUPABASE_URL}</div>
-                <div><span className="font-bold">Anon Key:</span> {import.meta.env.VITE_SUPABASE_ANON_KEY ? '設定済み' : '未設定'}</div>
+                <div><span className="font-bold">Supabase URL:</span> {process.env.NEXT_PUBLIC_SUPABASE_URL}</div>
+                <div><span className="font-bold">Anon Key:</span> {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '設定済み' : '未設定'}</div>
                 <div><span className="font-bold">リクエストURL:</span> {requestState.requestUrl}</div>
               </div>
             </div>
@@ -622,10 +592,10 @@ fetch("https://api.notion.com/v1/pages/${pageId}", {
               try {
                 // Supabase接続テスト
                 const testResponse = await fetch(
-                  `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notion/categories`,
+                  `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notion/categories`,
                   {
                     headers: {
-                      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+                      Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
                     },
                   }
                 );
@@ -651,8 +621,8 @@ fetch("https://api.notion.com/v1/pages/${pageId}", {
           <summary className="cursor-pointer font-medium">デバッグ情報</summary>
           <div className="mt-2 font-mono text-xs overflow-auto">
             <div><span className="font-bold">ページID:</span> {pageId}</div>
-            <div><span className="font-bold">Supabase URL:</span> {import.meta.env.VITE_SUPABASE_URL}</div>
-            <div><span className="font-bold">Supabase Key:</span> {import.meta.env.VITE_SUPABASE_ANON_KEY ? '設定済み' : '未設定'}</div>
+            <div><span className="font-bold">Supabase URL:</span> {process.env.NEXT_PUBLIC_SUPABASE_URL}</div>
+            <div><span className="font-bold">Supabase Key:</span> {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '設定済み' : '未設定'}</div>
             {requestState.pageRequestStarted && (
               <div><span className="font-bold">ページリクエスト開始:</span> {requestState.pageRequestStarted.toISOString()}</div>
             )}
@@ -677,7 +647,7 @@ fetch("https://api.notion.com/v1/pages/${pageId}", {
           </div>
         </details>
         
-        <Link to="/" className="inline-flex items-center mt-4 text-red-700 hover:text-red-800 font-medium">
+        <Link href="/" className="inline-flex items-center mt-4 text-red-700 hover:text-red-800 font-medium">
           ← ホームに戻る
         </Link>
       </div>
@@ -689,7 +659,7 @@ fetch("https://api.notion.com/v1/pages/${pageId}", {
       <div className="max-w-3xl mx-auto p-4 bg-yellow-50 rounded-md my-8 border border-yellow-300">
         <h1 className="text-xl font-bold text-yellow-700 mb-2">ページが見つかりません</h1>
         <p className="text-yellow-600">指定されたIDのページは存在しないか、アクセスできません。</p>
-        <Link to="/" className="inline-flex items-center mt-4 text-yellow-700 hover:text-yellow-800 font-medium">
+        <Link href="/" className="inline-flex items-center mt-4 text-yellow-700 hover:text-yellow-800 font-medium">
           ← ホームに戻る
         </Link>
       </div>
@@ -697,119 +667,135 @@ fetch("https://api.notion.com/v1/pages/${pageId}", {
   }
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4">
-      <header className="mb-8">
-        <h1 className="text-3xl font-bold mb-4">{title}</h1>
-        {category && (
-          <div className="text-sm text-gray-600 mb-2">
-            カテゴリー: <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">{category}</span>
-          </div>
-        )}
-        <div className="text-sm text-gray-500">
-          最終更新: {formatDate(page.last_edited_time)}
-        </div>
-      </header>
-
-      <article className="prose max-w-none">
-        {blocks && blocks.length > 0 ? (
-          <NotionContent blocks={blocks} />
-        ) : (
-          <div className="bg-gray-50 p-4 rounded border border-gray-200">
-            <p className="text-gray-600">ブロックデータが取得できませんでした。以下は生のページデータです：</p>
-            <div className="mt-2 p-3 bg-white rounded border border-gray-300 overflow-auto max-h-96">
-              <pre className="text-xs whitespace-pre-wrap">
-                {JSON.stringify(page, null, 2)}
-              </pre>
-            </div>
-          </div>
-        )}
-      </article>
-
-      <div className="mt-8 pt-4 border-t border-gray-200">
-        <button 
-          onClick={() => setShowDebug(!showDebug)} 
-          className="text-sm text-gray-500 hover:text-gray-700"
-        >
-          {showDebug ? 'デバッグ情報を隠す' : 'デバッグ情報を表示'}
-        </button>
+    <div className="pb-16">
+      {/* 戻るボタン */}
+      <div className="mb-6 flex items-center justify-between">
+        <Link href="/" className="inline-flex items-center text-gray-600 hover:text-gray-800">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          ホームに戻る
+        </Link>
         
-        {showDebug && (
-          <>
-            <div className="mt-4 flex gap-2 flex-wrap">
-              <button
-                onClick={() => {
-                  const currentValue = localStorage.getItem('use_cached_data') === 'true';
-                  localStorage.setItem('use_cached_data', (!currentValue).toString());
-                  alert(`キャッシュの使用: ${!currentValue ? '有効' : '無効'}`);
-                }}
-                className="px-3 py-1 bg-blue-50 border border-blue-300 rounded-md hover:bg-blue-100 text-sm text-blue-700"
-              >
-                キャッシュ使用を{localStorage.getItem('use_cached_data') === 'true' ? '無効' : '有効'}にする
-              </button>
-              <button
-                onClick={() => {
-                  localStorage.removeItem(`blocks_${pageId}`);
-                  localStorage.removeItem(`blocks_${pageId}_timestamp`);
-                  alert('このページのキャッシュをクリアしました');
-                }}
-                className="px-3 py-1 bg-yellow-50 border border-yellow-300 rounded-md hover:bg-yellow-100 text-sm text-yellow-700"
-              >
-                このページのキャッシュをクリア
-              </button>
-              <button
-                onClick={() => {
-                  window.location.reload();
-                }}
-                className="px-3 py-1 bg-green-50 border border-green-300 rounded-md hover:bg-green-100 text-sm text-green-700"
-              >
-                ページを再読み込み
-              </button>
-            </div>
+        <div className="flex space-x-2">
+          <Link href={`/category/${getPageCategory() || 'すべて'}`} className="text-blue-600 hover:text-blue-800">
+            カテゴリに戻る
+          </Link>
+        </div>
+      </div>
 
-            <details className="mt-4 border border-gray-200 rounded-md overflow-hidden">
-              <summary className="p-4 bg-gray-50 cursor-pointer">ページデータ</summary>
-              <div className="p-4 bg-gray-50">
-                <h3 className="text-lg font-semibold mb-2">現在のカテゴリ: {category || 'なし'}</h3>
-                <h3 className="text-lg font-semibold mb-2">プロパティ:</h3>
-                <pre className="bg-white p-4 rounded border border-gray-300 overflow-auto text-xs max-h-96">
-                  {JSON.stringify(page.properties, null, 2)}
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <header className="mb-8">
+          <h1 className="text-3xl font-bold mb-4">{title}</h1>
+          {category && (
+            <div className="text-sm text-gray-600 mb-2">
+              カテゴリー: <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">{category}</span>
+            </div>
+          )}
+          <div className="text-sm text-gray-500">
+            最終更新: {formatDate(page.last_edited_time)}
+          </div>
+        </header>
+
+        <article className="prose max-w-none">
+          {blocks && blocks.length > 0 ? (
+            <NotionContent blocks={blocks} />
+          ) : (
+            <div className="bg-gray-50 p-4 rounded border border-gray-200">
+              <p className="text-gray-600">ブロックデータが取得できませんでした。以下は生のページデータです：</p>
+              <div className="mt-2 p-3 bg-white rounded border border-gray-300 overflow-auto max-h-96">
+                <pre className="text-xs whitespace-pre-wrap">
+                  {JSON.stringify(page, null, 2)}
                 </pre>
               </div>
-            </details>
-            
-            <details className="mt-4 border border-gray-200 rounded-md overflow-hidden">
-              <summary className="p-4 bg-gray-50 cursor-pointer">ブロックデータ ({blocks.length} ブロック)</summary>
-              <div className="p-4 bg-gray-50">
-                <div className="flex justify-between mb-2">
-                  <h3 className="text-lg font-semibold">ブロック:</h3>
-                  <button
-                    onClick={copyContentAsJson}
-                    className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200 hover:bg-blue-100"
-                  >
-                    {jsonCopied ? 'コピー完了！' : 'JSONとしてコピー'}
-                  </button>
+            </div>
+          )}
+        </article>
+
+        <div className="mt-8 pt-4 border-t border-gray-200">
+          <button 
+            onClick={() => setShowDebug(!showDebug)} 
+            className="text-sm text-gray-500 hover:text-gray-700"
+          >
+            {showDebug ? 'デバッグ情報を隠す' : 'デバッグ情報を表示'}
+          </button>
+          
+          {showDebug && (
+            <>
+              <div className="mt-4 flex gap-2 flex-wrap">
+                <button
+                  onClick={() => {
+                    const currentValue = localStorage.getItem('use_cached_data') === 'true';
+                    localStorage.setItem('use_cached_data', (!currentValue).toString());
+                    alert(`キャッシュの使用: ${!currentValue ? '有効' : '無効'}`);
+                  }}
+                  className="px-3 py-1 bg-blue-50 border border-blue-300 rounded-md hover:bg-blue-100 text-sm text-blue-700"
+                >
+                  キャッシュ使用を{localStorage.getItem('use_cached_data') === 'true' ? '無効' : '有効'}にする
+                </button>
+                <button
+                  onClick={() => {
+                    localStorage.removeItem(`blocks_${pageId}`);
+                    localStorage.removeItem(`blocks_${pageId}_timestamp`);
+                    alert('このページのキャッシュをクリアしました');
+                  }}
+                  className="px-3 py-1 bg-yellow-50 border border-yellow-300 rounded-md hover:bg-yellow-100 text-sm text-yellow-700"
+                >
+                  このページのキャッシュをクリア
+                </button>
+                <button
+                  onClick={() => {
+                    window.location.reload();
+                  }}
+                  className="px-3 py-1 bg-green-50 border border-green-300 rounded-md hover:bg-green-100 text-sm text-green-700"
+                >
+                  ページを再読み込み
+                </button>
+              </div>
+
+              <details className="mt-4 border border-gray-200 rounded-md overflow-hidden">
+                <summary className="p-4 bg-gray-50 cursor-pointer">ページデータ</summary>
+                <div className="p-4 bg-gray-50">
+                  <h3 className="text-lg font-semibold mb-2">現在のカテゴリ: {category || 'なし'}</h3>
+                  <h3 className="text-lg font-semibold mb-2">プロパティ:</h3>
+                  <pre className="bg-white p-4 rounded border border-gray-300 overflow-auto text-xs max-h-96">
+                    {JSON.stringify(page.properties, null, 2)}
+                  </pre>
                 </div>
-                <pre className="bg-white p-4 rounded border border-gray-300 overflow-auto text-xs max-h-96">
-                  {JSON.stringify(blocks.slice(0, 10), null, 2)}
-                  {blocks.length > 10 && (
-                    <div className="mt-2 p-2 bg-yellow-50 text-yellow-700 rounded">
-                      ... 残り {blocks.length - 10} ブロックは省略されました ...
-                    </div>
-                  )}
-                </pre>
-              </div>
-            </details>
-            
-            <details className="mt-4 border border-gray-200 rounded-md overflow-hidden">
-              <summary className="p-4 bg-gray-50 cursor-pointer">リクエスト情報</summary>
-              <div className="p-4 bg-gray-50">
-                <pre className="bg-white p-4 rounded border border-gray-300 overflow-auto text-xs">
-                  {JSON.stringify(requestState, null, 2)}
-                </pre>
-              </div>
-            </details>
-          </>
-        )}
+              </details>
+              
+              <details className="mt-4 border border-gray-200 rounded-md overflow-hidden">
+                <summary className="p-4 bg-gray-50 cursor-pointer">ブロックデータ ({blocks.length} ブロック)</summary>
+                <div className="p-4 bg-gray-50">
+                  <div className="flex justify-between mb-2">
+                    <h3 className="text-lg font-semibold">ブロック:</h3>
+                    <button
+                      onClick={copyContentAsJson}
+                      className="text-xs bg-blue-50 text-blue-700 px-2 py-1 rounded border border-blue-200 hover:bg-blue-100"
+                    >
+                      {jsonCopied ? 'コピー完了！' : 'JSONとしてコピー'}
+                    </button>
+                  </div>
+                  <pre className="bg-white p-4 rounded border border-gray-300 overflow-auto text-xs max-h-96">
+                    {JSON.stringify(blocks.slice(0, 10), null, 2)}
+                    {blocks.length > 10 && (
+                      <div className="mt-2 p-2 bg-yellow-50 text-yellow-700 rounded">
+                        ... 残り {blocks.length - 10} ブロックは省略されました ...
+                      </div>
+                    )}
+                  </pre>
+                </div>
+              </details>
+              
+              <details className="mt-4 border border-gray-200 rounded-md overflow-hidden">
+                <summary className="p-4 bg-gray-50 cursor-pointer">リクエスト情報</summary>
+                <div className="p-4 bg-gray-50">
+                  <pre className="bg-white p-4 rounded border border-gray-300 overflow-auto text-xs">
+                    {JSON.stringify(requestState, null, 2)}
+                  </pre>
+                </div>
+              </details>
+            </>
+          )}
+        </div>
       </div>
     </div>
   );

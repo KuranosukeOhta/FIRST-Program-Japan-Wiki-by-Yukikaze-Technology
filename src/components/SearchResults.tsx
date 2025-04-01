@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, Loader2, AlertCircle, Tag, Calendar, ArrowLeft } from 'lucide-react';
 
 interface NotionPage {
@@ -14,9 +15,9 @@ interface NotionData {
 }
 
 function SearchResults() {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const query = searchParams.get('q') || '';
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const query = searchParams?.get('q') || '';
   
   const [pages, setPages] = useState<NotionPage[]>([]);
   const [searchResults, setSearchResults] = useState<NotionPage[]>([]);
@@ -32,10 +33,10 @@ function SearchResults() {
       
       try {
         const response = await fetch(
-          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/notion`,
+          `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/notion`,
           {
             headers: {
-              Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+              Authorization: `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`,
             },
           }
         );
@@ -110,7 +111,7 @@ function SearchResults() {
     e.preventDefault();
     
     if (searchQuery.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
     }
   };
   
@@ -183,7 +184,7 @@ function SearchResults() {
           <h3 className="text-lg font-medium">エラーが発生しました</h3>
         </div>
         <p>{error}</p>
-        <Link to="/" className="inline-flex items-center mt-4 text-red-700 hover:text-red-800 font-medium">
+        <Link href="/" className="inline-flex items-center mt-4 text-red-700 hover:text-red-800 font-medium">
           <ArrowLeft className="w-4 h-4 mr-1" />
           ホームに戻る
         </Link>
@@ -194,7 +195,7 @@ function SearchResults() {
   return (
     <div className="space-y-6">
       <div className="mb-6">
-        <Link to="/" className="inline-flex items-center text-indigo-600 hover:text-indigo-800">
+        <Link href="/" className="inline-flex items-center text-indigo-600 hover:text-indigo-800">
           <ArrowLeft className="w-4 h-4 mr-1" />
           ホームに戻る
         </Link>
@@ -238,7 +239,7 @@ function SearchResults() {
               
               return (
                 <li key={page.id} className="hover:bg-gray-50">
-                  <Link to={`/page/${page.id}`} className="block p-4">
+                  <Link href={`/page/${page.id}`} className="block p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex-1 min-w-0">
                         <h2 className="text-lg font-medium text-gray-900 truncate">{title}</h2>
@@ -277,12 +278,12 @@ function SearchResults() {
             })}
           </ul>
         ) : (
-          <div className="p-6 text-center text-gray-500">
-            {query ? (
-              <p>「{query}」に一致するページが見つかりませんでした。</p>
-            ) : (
-              <p>検索キーワードを入力してください。</p>
-            )}
+          <div className="p-8 text-center text-gray-500">
+            <p>「{query}」に一致するページが見つかりませんでした。</p>
+            <Link href="/" className="mt-4 inline-flex items-center text-indigo-600 hover:text-indigo-800">
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              ホームに戻る
+            </Link>
           </div>
         )}
       </div>

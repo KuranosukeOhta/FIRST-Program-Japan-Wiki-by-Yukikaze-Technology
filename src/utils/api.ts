@@ -24,7 +24,7 @@ export const useFetch = <T>(url: string, options?: RequestInit) => {
     try {
       // 1x1透明GIFをロード
       const img = new Image();
-      img.src = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ping?t=${new Date().getTime()}`;
+      img.src = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/ping?t=${new Date().getTime()}`;
       
       // 2秒待つ
       await new Promise<void>((resolve) => {

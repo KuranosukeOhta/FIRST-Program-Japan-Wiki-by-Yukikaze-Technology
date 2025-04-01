@@ -9,7 +9,18 @@ export const createSupabaseClient = () => {
     throw new Error('Supabase環境変数が設定されていません');
   }
 
-  return createClient(supabaseUrl, supabaseAnonKey);
+  return createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false
+    },
+    global: {
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseAnonKey
+      }
+    }
+  });
 };
 
 // サーバー側で使用するSupabaseクライアント（管理者権限）
@@ -21,7 +32,18 @@ export const createSupabaseAdmin = () => {
     throw new Error('Supabase管理者環境変数が設定されていません');
   }
 
-  return createClient(supabaseUrl, supabaseServiceKey);
+  return createClient(supabaseUrl, supabaseServiceKey, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false
+    },
+    global: {
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': supabaseServiceKey
+      }
+    }
+  });
 };
 
 // シングルトンパターンでクライアント側のSupabaseインスタンスを提供

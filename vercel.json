@@ -1,0 +1,17 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" }
+  ],
+  "functions": {
+    "api/index.js": {
+      "memory": 1024,
+      "maxDuration": 60
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/sync-notion",
+      "schedule": "0 0 * * *"
+    }
+  ]
+} 

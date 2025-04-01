@@ -2,7 +2,7 @@
   "version": 2,
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
-  "framework": "next",
+  "framework": "nextjs",
   "crons": [
     {
       "path": "/api/sync-notion",

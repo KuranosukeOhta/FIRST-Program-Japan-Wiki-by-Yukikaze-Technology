@@ -7,15 +7,15 @@ import Link from 'next/link';
 interface CategoryFilterProps {
   currentCategory: string;
   categories: string[];
-  getClearCategoryLink: () => string;
-  generateCategoryLink: (category: string) => string;
+  clearCategoryLink: string;
+  categoryBasePath: string;
 }
 
 export default function CategoryFilter({
   currentCategory,
   categories,
-  getClearCategoryLink,
-  generateCategoryLink
+  clearCategoryLink,
+  categoryBasePath
 }: CategoryFilterProps) {
   return (
     <div className="w-full md:w-auto">
@@ -26,7 +26,7 @@ export default function CategoryFilter({
             <span className="font-medium text-blue-800">{currentCategory}</span>
           </div>
           <Link
-            href={getClearCategoryLink()}
+            href={clearCategoryLink}
             className="bg-white hover:bg-gray-50 text-red-600 border border-l-0 border-gray-300 rounded-r-lg py-3 px-4 flex items-center"
           >
             解除
@@ -40,7 +40,7 @@ export default function CategoryFilter({
             defaultValue=""
             onChange={(e) => {
               if (e.target.value) {
-                window.location.href = generateCategoryLink(e.target.value);
+                window.location.href = `${categoryBasePath}${encodeURIComponent(e.target.value)}`;
               }
             }}
           >

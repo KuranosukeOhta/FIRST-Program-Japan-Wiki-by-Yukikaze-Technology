@@ -185,8 +185,8 @@ export default async function WikiPage({
         <CategoryFilter 
           currentCategory={currentCategory}
           categories={result.categories}
-          getClearCategoryLink={getClearCategoryLink}
-          generateCategoryLink={generateCategoryLink}
+          clearCategoryLink={getClearCategoryLink()}
+          categoryBasePath={`/wiki?category=`}
         />
       </div>
       

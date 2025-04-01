@@ -1,72 +1,111 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase';
 
 // APIルートを動的に生成するように設定
 export const dynamic = 'force-dynamic';
 
 export async function GET(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const id = params.id;
+  
+  // 開発環境用のダミーデータ
+  if (process.env.NODE_ENV === 'development') {
+    return NextResponse.json({
+      page: {
+        id,
+        title: `Wiki ページ ${id}`,
+        category: 'FRC',
+        last_edited_time: new Date().toISOString(),
+        created_time: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() // 1週間前
+      },
+      blocks: [
+        {
+          id: 'block1',
+          type: 'paragraph',
+          paragraph: {
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'これはダミーのWikiページです。' },
+                annotations: { bold: false, italic: false, underline: false }
+              }
+            ]
+          }
+        },
+        {
+          id: 'block2',
+          type: 'heading_2',
+          heading_2: {
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: '見出し' },
+                annotations: { bold: false, italic: false, underline: false }
+              }
+            ]
+          }
+        },
+        {
+          id: 'block3',
+          type: 'paragraph',
+          paragraph: {
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'このページは開発環境用のダミーデータです。' },
+                annotations: { bold: false, italic: false, underline: false }
+              }
+            ]
+          }
+        }
+      ]
+    });
+  }
+  
   try {
-    const pageId = params.id;
-    if (!pageId) {
-      return NextResponse.json({ error: 'ページIDが指定されていません' }, { status: 400 });
-    }
-    
     const supabase = createSupabaseClient();
     
     // ページ情報を取得
     const { data: page, error: pageError } = await supabase
-      .from('notion_pages')
+      .from('wiki_pages')
       .select('*')
-      .eq('id', pageId)
+      .eq('id', id)
       .single();
     
     if (pageError) {
       console.error('ページ取得エラー:', pageError);
-      return NextResponse.json({ error: 'ページが見つかりません: ' + pageError.message }, { status: 404 });
+      return NextResponse.json(
+        { error: 'ページの取得に失敗しました' },
+        { status: 404 }
+      );
     }
     
-    // ページのブロック（コンテンツ）を取得
-    const { data: blocks, error: blockError } = await supabase
-      .from('notion_blocks')
+    // ページに関連するブロックを取得
+    const { data: blocks, error: blocksError } = await supabase
+      .from('wiki_blocks')
       .select('*')
-      .eq('page_id', pageId)
-      .order('sort_order', { ascending: true });
+      .eq('page_id', id)
+      .order('sort_order');
     
-    if (blockError) {
-      console.error('ブロック取得エラー:', blockError);
-      return NextResponse.json({ error: 'ページコンテンツの取得に失敗しました: ' + blockError.message }, { status: 500 });
-    }
-    
-    // 関連ページを取得（同じカテゴリのページ）
-    let relatedPages: any[] = [];
-    if (page.category) {
-      const { data: related, error: relatedError } = await supabase
-        .from('notion_pages')
-        .select('id, title, category')
-        .eq('category', page.category)
-        .not('id', 'eq', pageId)
-        .order('last_edited_time', { ascending: false })
-        .limit(5);
-      
-      if (!relatedError && related) {
-        relatedPages = related;
-      }
+    if (blocksError) {
+      console.error('ブロック取得エラー:', blocksError);
+      return NextResponse.json(
+        { error: 'ページの内容取得に失敗しました' },
+        { status: 500 }
+      );
     }
     
     return NextResponse.json({
       page,
-      blocks: blocks || [],
-      relatedPages
+      blocks: blocks || []
     });
-  } catch (error: any) {
-    console.error('ページ詳細取得エラー:', error);
-    
-    return NextResponse.json({
-      error: 'ページ詳細の取得中にエラーが発生しました',
-      details: error.message
-    }, { status: 500 });
+  } catch (error) {
+    console.error('APIエラー:', error);
+    return NextResponse.json(
+      { error: 'サーバーエラーが発生しました' },
+      { status: 500 }
+    );
   }
 } 

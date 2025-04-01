@@ -7,66 +7,75 @@ export async function GET() {
   try {
     const supabase = createSupabaseClient();
     
-    // 最新の同期ステータスを取得
-    const { data: latestSync, error: syncError } = await supabase
-      .from('notion_sync_status')
+    // 総ページ数の取得
+    const { count: totalPages, error: pagesError } = await supabase
+      .from('wiki_pages')
+      .select('*', { count: 'exact', head: true });
+    
+    if (pagesError) {
+      console.error('ページ数取得エラー:', pagesError);
+      return NextResponse.json({ error: 'ページ数の取得に失敗しました' }, { status: 500 });
+    }
+    
+    // 最新の同期情報の取得
+    const { data: syncData, error: syncError } = await supabase
+      .from('sync_history')
       .select('*')
       .order('last_sync_time', { ascending: false })
-      .limit(1)
-      .single();
+      .limit(1);
     
     if (syncError) {
-      console.error('同期ステータス取得エラー:', syncError);
-      return NextResponse.json({ error: '同期ステータス取得エラー: ' + syncError.message }, { status: 500 });
+      console.error('同期情報取得エラー:', syncError);
+      return NextResponse.json({ error: '同期情報の取得に失敗しました' }, { status: 500 });
     }
     
-    // ページ数とカテゴリの集計を取得
-    const { data: pageStats, error: statsError } = await supabase
-      .from('notion_pages')
-      .select('category')
-      .not('category', 'is', null);
+    // カテゴリごとのページ数を取得
+    const { data: categoryData, error: categoryError } = await supabase
+      .from('wiki_pages')
+      .select('category');
     
-    if (statsError) {
-      console.error('ページ統計取得エラー:', statsError);
+    if (categoryError) {
+      console.error('カテゴリ情報取得エラー:', categoryError);
+      return NextResponse.json({ error: 'カテゴリ情報の取得に失敗しました' }, { status: 500 });
     }
     
-    // カテゴリーごとのページ数を集計
-    const categoryCount: Record<string, number> = {};
-    if (pageStats) {
-      pageStats.forEach(page => {
-        const category = page.category || '未分類';
-        categoryCount[category] = (categoryCount[category] || 0) + 1;
-      });
-    }
+    // カテゴリごとのページ数を計算
+    const categoryStats: Record<string, number> = {};
+    categoryData.forEach(item => {
+      const category = item.category || '未分類';
+      categoryStats[category] = (categoryStats[category] || 0) + 1;
+    });
     
-    // 最終同期日時から経過時間を計算
+    // 最終同期からの経過時間を計算
     let timeSinceLastSync = null;
-    if (latestSync?.last_sync_time) {
-      const lastSyncDate = new Date(latestSync.last_sync_time);
+    if (syncData && syncData.length > 0 && syncData[0].last_sync_time) {
+      const lastSyncTime = new Date(syncData[0].last_sync_time);
       const now = new Date();
-      const diffMs = now.getTime() - lastSyncDate.getTime();
-      const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+      const diffMs = now.getTime() - lastSyncTime.getTime();
       
-      if (diffHours < 24) {
-        timeSinceLastSync = `${diffHours}時間前`;
-      } else {
-        const diffDays = Math.floor(diffHours / 24);
-        timeSinceLastSync = `${diffDays}日前`;
+      // 経過時間を人間が読みやすい形式に変換
+      if (diffMs < 60000) { // 1分未満
+        timeSinceLastSync = '1分未満前';
+      } else if (diffMs < 3600000) { // 1時間未満
+        const minutes = Math.floor(diffMs / 60000);
+        timeSinceLastSync = `${minutes}分前`;
+      } else if (diffMs < 86400000) { // 1日未満
+        const hours = Math.floor(diffMs / 3600000);
+        timeSinceLastSync = `${hours}時間前`;
+      } else { // 1日以上
+        const days = Math.floor(diffMs / 86400000);
+        timeSinceLastSync = `${days}日前`;
       }
     }
     
     return NextResponse.json({
-      latestSync,
+      totalPages: totalPages || 0,
+      latestSync: syncData && syncData.length > 0 ? syncData[0] : null,
       timeSinceLastSync,
-      totalPages: pageStats?.length || 0,
-      categoryStats: categoryCount
+      categoryStats
     });
-  } catch (error: any) {
-    console.error('ステータス取得エラー:', error);
-    
-    return NextResponse.json({
-      error: 'ステータス取得中にエラーが発生しました',
-      details: error.message
-    }, { status: 500 });
+  } catch (error) {
+    console.error('APIエラー:', error);
+    return NextResponse.json({ error: 'サーバーエラーが発生しました' }, { status: 500 });
   }
 } 

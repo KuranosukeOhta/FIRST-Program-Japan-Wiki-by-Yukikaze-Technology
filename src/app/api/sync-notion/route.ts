@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createNotionClient, extractTitle, extractCategory } from '@/lib/notion';
 import { createSupabaseAdmin } from '@/lib/supabase';
+import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
 
 export async function POST(request: Request) {
   // 認証チェック
@@ -51,19 +52,35 @@ export async function POST(request: Request) {
       try {
         console.log(`ページ処理中: ${page.id}`);
         
+        // ページオブジェクトがPageObjectResponseであるか確認
+        if (page.object !== 'page') {
+          console.error(`不正なページオブジェクト: ${page.id}`);
+          errors.push({ id: page.id, error: '不正なページオブジェクト', type: 'page' });
+          continue;
+        }
+        
         // ページデータをSupabaseに保存
+        const pageData = {
+          id: page.id,
+          title: extractTitle(page),
+          category: extractCategory(page),
+          last_synced_at: new Date().toISOString(),
+          raw_data: page,
+          properties: (page as any).properties || {},
+        };
+        
+        // ページが完全なPageObjectResponseの場合のみ、追加のプロパティを設定
+        if ('created_time' in page) {
+          pageData['created_time'] = page.created_time;
+        }
+        
+        if ('last_edited_time' in page) {
+          pageData['last_edited_time'] = page.last_edited_time;
+        }
+        
         const { error: pageError } = await supabase
           .from('notion_pages')
-          .upsert({
-            id: page.id,
-            title: extractTitle(page),
-            category: extractCategory(page),
-            created_time: page.created_time,
-            last_edited_time: page.last_edited_time,
-            properties: page.properties,
-            raw_data: page,
-            last_synced_at: new Date().toISOString()
-          });
+          .upsert(pageData);
         
         if (pageError) {
           console.error(`ページ保存エラー(${page.id}):`, pageError);
@@ -92,19 +109,29 @@ export async function POST(request: Request) {
         // 新しいブロックを挿入
         for (let i = 0; i < blocks.results.length; i++) {
           const block = blocks.results[i];
+          
+          const blockData = {
+            id: block.id,
+            page_id: page.id,
+            type: block.type,
+            content: block,
+            has_children: 'has_children' in block ? block.has_children : false,
+            sort_order: i,
+            last_synced_at: new Date().toISOString()
+          };
+          
+          // 存在する場合のみプロパティを追加
+          if ('created_time' in block) {
+            blockData['created_time'] = block.created_time;
+          }
+          
+          if ('last_edited_time' in block) {
+            blockData['last_edited_time'] = block.last_edited_time;
+          }
+          
           const { error: blockError } = await supabase
             .from('notion_blocks')
-            .insert({
-              id: block.id,
-              page_id: page.id,
-              type: block.type,
-              content: block,
-              has_children: 'has_children' in block ? block.has_children : false,
-              sort_order: i,
-              created_time: block.created_time,
-              last_edited_time: block.last_edited_time,
-              last_synced_at: new Date().toISOString()
-            });
+            .insert(blockData);
           
           if (blockError) {
             console.error(`ブロック保存エラー(${block.id}):`, blockError);

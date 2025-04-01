@@ -69,7 +69,7 @@ export async function GET(
     
     // ページ情報を取得
     const { data: page, error: pageError } = await supabase
-      .from('wiki_pages')
+      .from('notion_pages')
       .select('*')
       .eq('id', id)
       .single();
@@ -84,7 +84,7 @@ export async function GET(
     
     // ページに関連するブロックを取得
     const { data: blocks, error: blocksError } = await supabase
-      .from('wiki_blocks')
+      .from('notion_blocks')
       .select('*')
       .eq('page_id', id)
       .order('sort_order');

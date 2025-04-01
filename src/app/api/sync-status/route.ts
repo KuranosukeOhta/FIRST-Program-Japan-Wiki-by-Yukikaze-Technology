@@ -9,7 +9,7 @@ export async function GET() {
     
     // 総ページ数の取得
     const { count: totalPages, error: pagesError } = await supabase
-      .from('wiki_pages')
+      .from('notion_pages')
       .select('*', { count: 'exact', head: true });
     
     if (pagesError) {
@@ -19,7 +19,7 @@ export async function GET() {
     
     // 最新の同期情報の取得
     const { data: syncData, error: syncError } = await supabase
-      .from('sync_history')
+      .from('notion_sync_status')
       .select('*')
       .order('last_sync_time', { ascending: false })
       .limit(1);
@@ -31,7 +31,7 @@ export async function GET() {
     
     // カテゴリごとのページ数を取得
     const { data: categoryData, error: categoryError } = await supabase
-      .from('wiki_pages')
+      .from('notion_pages')
       .select('category');
     
     if (categoryError) {

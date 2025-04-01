@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
     const supabase = createSupabaseClient();
     
     let query = supabase
-      .from('wiki_pages')
+      .from('notion_pages')
       .select('id, title, category, last_edited_time', { count: 'exact' });
       
     if (category) {
@@ -83,7 +83,7 @@ export async function GET(request: NextRequest) {
     
     // カテゴリ一覧を取得
     const { data: categoryData, error: categoryError } = await supabase
-      .from('wiki_pages')
+      .from('notion_pages')
       .select('category')
       .not('category', 'is', null);
       

@@ -117,8 +117,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('APIエラー詳細:', error);
     return NextResponse.json(
-      { error: 'サーバーエラーが発生しました', details: error instanceof Error ? error.message : String(error) }, 
-      { error: 'サーバーエラーが発生しました' }, 
+      { error: 'サーバーエラーが発生しました', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     );
   }

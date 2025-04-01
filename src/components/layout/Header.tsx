@@ -28,9 +28,9 @@ export const Header: React.FC = () => {
             </div>
           </div>
           
-          <Link href="/dashboard" className="ml-4 bg-blue-800 hover:bg-blue-900 px-4 py-2 rounded-lg hidden sm:block">
+          <a href="#" onClick={(e) => e.preventDefault()} className="ml-4 bg-blue-800 hover:bg-blue-900 px-4 py-2 rounded-lg hidden sm:block">
             管理画面
-          </Link>
+          </a>
         </div>
       </div>
     </header>

@@ -28,14 +28,14 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <Link href="/about" className="text-blue-600 hover:underline">
+                <a href="#" onClick={(e) => e.preventDefault()} className="text-blue-600 hover:underline">
                   このサイトについて
-                </Link>
+                </a>
               </li>
               <li>
-                <Link href="/contact" className="text-blue-600 hover:underline">
+                <a href="#" onClick={(e) => e.preventDefault()} className="text-blue-600 hover:underline">
                   お問い合わせ
-                </Link>
+                </a>
               </li>
             </ul>
           </div>

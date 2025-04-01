@@ -143,12 +143,13 @@ export default async function Home() {
               <BookOpen className="mr-2 h-5 w-5" />
               ウィキを見る
             </Link>
-            <Link 
-              href="/about" 
+            <a 
+              href="#" 
+              onClick={(e) => e.preventDefault()}
               className="bg-white hover:bg-gray-100 text-blue-600 border border-blue-300 px-6 py-3 rounded-lg text-lg font-medium"
             >
               詳細を見る
-            </Link>
+            </a>
           </div>
         </div>
       </section>

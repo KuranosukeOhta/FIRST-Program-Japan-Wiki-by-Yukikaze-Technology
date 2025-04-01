@@ -23,8 +23,8 @@ async function getWikiPages(searchParams: { [key: string]: string | string[] | u
   const search = searchParams.search as string || '';
   const page = Number(searchParams.page) || 1;
   
-  // 開発環境またはビルド時はダミーデータを返す
-  if (process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview' || process.env.VERCEL_ENV === 'production') {
+  // 開発環境のみダミーデータを返す
+  if (process.env.NODE_ENV === 'development') {
     // カテゴリでフィルタリング
     let filteredPages = [
       { id: '1', title: 'FRC 2024 ルール概要', category: 'FRC', last_edited_time: '2024-01-15T12:00:00Z' },

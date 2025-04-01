@@ -4,8 +4,8 @@ import { ArrowLeft, Calendar, Tag, ExternalLink } from 'lucide-react';
 import { BlockRenderer } from '@/components/notion/BlockRenderer';
 
 async function getPageDetail(id: string) {
-  // 開発環境またはビルド時はダミーデータを返す
-  if (process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview' || process.env.VERCEL_ENV === 'production') {
+  // 開発環境のみダミーデータを返す
+  if (process.env.NODE_ENV === 'development') {
     return {
       page: {
         id,

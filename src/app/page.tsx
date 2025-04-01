@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { ArrowRight, BookOpen, RefreshCw, Tag, Search, Filter } from 'lucide-react';
 import HomeButtons from '@/components/HomeButtons';
+import { getStats, getLatestPages } from '@/lib/data';
 
 // 型定義
 interface WikiStats {
@@ -48,30 +49,10 @@ async function getHomeStats(): Promise<WikiStats> {
       };
     }
     
-    // ベースURLが設定されていない場合はダミーデータを返す
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    if (!baseUrl) {
-      console.warn('NEXT_PUBLIC_BASE_URL が設定されていません。ダミーデータを使用します。');
-      return {
-        totalPages: 0,
-        latestSync: null,
-        timeSinceLastSync: null,
-        categoryStats: {}
-      };
-    }
-    
-    // 完全なURLを使用
-    const res = await fetch(`${baseUrl}/api/sync-status`, {
-      next: { revalidate: 60 } // 1分ごとに再検証
-    });
-    
-    if (!res.ok) {
-      throw new Error('統計情報の取得に失敗しました');
-    }
-    
-    return await res.json();
+    // 本番環境では直接Supabaseからデータを取得
+    return await getStats();
   } catch (error) {
-    console.error('APIエラー:', error);
+    console.error('統計情報取得エラー:', error);
     
     // エラー時もダミーデータを返す
     return {
@@ -83,7 +64,7 @@ async function getHomeStats(): Promise<WikiStats> {
   }
 }
 
-async function getLatestPages(): Promise<LatestPages> {
+async function fetchLatestPages(): Promise<LatestPages> {
   try {
     // 開発環境のみダミーデータを使用
     if (process.env.NODE_ENV === 'development') {
@@ -96,27 +77,10 @@ async function getLatestPages(): Promise<LatestPages> {
       };
     }
     
-    // ベースURLが設定されていない場合はダミーデータを返す
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    if (!baseUrl) {
-      console.warn('NEXT_PUBLIC_BASE_URL が設定されていません。ダミーデータを使用します。');
-      return {
-        pages: []
-      };
-    }
-    
-    // 完全なURLを使用
-    const res = await fetch(`${baseUrl}/api/wiki?limit=5`, {
-      next: { revalidate: 60 } // 1分ごとに再検証
-    });
-    
-    if (!res.ok) {
-      throw new Error('ページ一覧の取得に失敗しました');
-    }
-    
-    return await res.json();
+    // 本番環境では直接Supabaseからデータを取得
+    return await getLatestPages(3);
   } catch (error) {
-    console.error('APIエラー:', error);
+    console.error('最新ページ取得エラー:', error);
     
     // エラー時はダミーデータを返す
     return { pages: [] };
@@ -125,7 +89,7 @@ async function getLatestPages(): Promise<LatestPages> {
 
 export default async function Home() {
   const stats = await getHomeStats();
-  const latestPages = await getLatestPages();
+  const latestPages = await fetchLatestPages();
   
   return (
     <div className="space-y-10">

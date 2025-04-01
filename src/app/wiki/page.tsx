@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { Search, Filter, RefreshCw } from 'lucide-react';
 import CategoryFilter from '@/components/CategoryFilter';
+import { getWikiPages } from '@/lib/data';
 
 // 型定義
 interface WikiPageResult {
@@ -17,7 +18,7 @@ interface WikiPageResult {
   categories: string[];
 }
 
-async function getWikiPages(searchParams: { [key: string]: string | string[] | undefined }): Promise<WikiPageResult> {
+async function fetchWikiPages(searchParams: { [key: string]: string | string[] | undefined }): Promise<WikiPageResult> {
   // クエリパラメータを取得
   const category = searchParams.category as string || '';
   const search = searchParams.search as string || '';
@@ -63,39 +64,15 @@ async function getWikiPages(searchParams: { [key: string]: string | string[] | u
   }
   
   try {
-    // ベースURLが設定されていない場合はダミーデータを返す
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    if (!baseUrl) {
-      console.warn('NEXT_PUBLIC_BASE_URL が設定されていません。ダミーデータを使用します。');
-      // ダミーデータを返す
-      return {
-        pages: [],
-        total: 0,
-        page: 1,
-        limit: 10,
-        totalPages: 0,
-        categories: []
-      };
-    }
-    
-    // クエリパラメータの構築
-    const params = new URLSearchParams();
-    if (category) params.append('category', category);
-    if (search) params.append('search', search);
-    params.append('page', page.toString());
-    
-    // 完全なURLを使用
-    const res = await fetch(`${baseUrl}/api/wiki?${params.toString()}`, {
-      next: { revalidate: 60 } // 1分ごとに再検証
+    // 本番環境では直接Supabaseからデータを取得
+    return await getWikiPages({
+      category,
+      search,
+      page,
+      limit: 10
     });
-    
-    if (!res.ok) {
-      throw new Error('ページ一覧の取得に失敗しました');
-    }
-    
-    return await res.json();
   } catch (error) {
-    console.error('APIエラー:', error);
+    console.error('ページ一覧取得エラー:', error);
     // エラー時もダミーデータを返す
     return {
       pages: [
@@ -117,7 +94,7 @@ export default async function WikiPage({
 }: {
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
-  const result = await getWikiPages(searchParams);
+  const result = await fetchWikiPages(searchParams);
   const currentCategory = searchParams.category as string || '';
   const currentSearch = searchParams.search as string || '';
   const currentPage = Number(searchParams.page) || 1;

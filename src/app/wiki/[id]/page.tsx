@@ -1,105 +1,57 @@
 import Link from 'next/link';
+import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { ArrowLeft, Calendar, Tag, ExternalLink } from 'lucide-react';
 import { BlockRenderer } from '@/components/notion/BlockRenderer';
+import RelatedPages from '@/components/RelatedPages';
+import { getPageDetail } from '@/lib/data';
 
-async function getPageDetail(id: string) {
+interface PageProps {
+  params: {
+    id: string;
+  };
+}
+
+export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
+  const pageData = await fetchPageData(params.id);
+  
+  return {
+    title: `${pageData?.title || 'ページが見つかりません'} | FIRST Japan Wiki`,
+    description: pageData?.description || 'FIRST Program Japan Wikiのページです',
+  };
+}
+
+async function fetchPageData(id: string) {
   // 開発環境のみダミーデータを返す
   if (process.env.NODE_ENV === 'development') {
     return {
-      page: {
-        id,
-        title: `Wiki ページ ${id}`,
-        category: 'FRC',
-        last_edited_time: new Date().toISOString(),
-        created_time: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() // 1週間前
-      },
-      blocks: [
-        {
-          id: 'block1',
-          type: 'paragraph',
-          paragraph: {
-            rich_text: [
-              {
-                type: 'text',
-                text: { content: 'これはダミーのWikiページです。' },
-                annotations: { bold: false, italic: false, underline: false }
-              }
-            ]
-          }
-        },
-        {
-          id: 'block2',
-          type: 'heading_2',
-          heading_2: {
-            rich_text: [
-              {
-                type: 'text',
-                text: { content: '見出し' },
-                annotations: { bold: false, italic: false, underline: false }
-              }
-            ]
-          }
-        },
-        {
-          id: 'block3',
-          type: 'paragraph',
-          paragraph: {
-            rich_text: [
-              {
-                type: 'text',
-                text: { content: 'このページは開発環境用のダミーデータです。' },
-                annotations: { bold: false, italic: false, underline: false }
-              }
-            ]
-          }
-        }
-      ],
-      relatedPages: []
+      id,
+      title: 'FRC 2024 ルール概要（開発モード）',
+      category: 'FRC',
+      blocks: [],
+      description: 'これは開発モードのダミーページです',
+      relatedPages: [
+        { id: '2', title: 'FTC パーツリスト', category: 'FTC' },
+        { id: '3', title: 'プログラミング入門', category: 'チュートリアル' }
+      ]
     };
   }
   
   try {
-    // ベースURLが設定されていない場合はダミーデータを返す
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
-    if (!baseUrl) {
-      console.warn('NEXT_PUBLIC_BASE_URL が設定されていません。ダミーデータを使用します。');
-      // 開発モードのダミーデータを返す
-      return getPageDetail(id);
-    }
-    
-    // 完全なURLを使用
-    const res = await fetch(`${baseUrl}/api/wiki/${id}`, {
-      next: { revalidate: 60 } // 1分ごとに再検証
-    });
-    
-    if (!res.ok) {
-      if (res.status === 404) {
-        return notFound();
-      }
-      throw new Error('ページの取得に失敗しました');
-    }
-    
-    return await res.json();
+    // 本番環境では直接Supabaseからデータを取得
+    return await getPageDetail(id);
   } catch (error) {
-    console.error('APIエラー:', error);
-    // エラー時はダミーデータを返す
-    return {
-      page: {
-        id,
-        title: `Page ${id}`,
-        category: 'エラー',
-        last_edited_time: new Date().toISOString(),
-        created_time: new Date().toISOString()
-      },
-      blocks: [],
-      relatedPages: []
-    };
+    console.error(`ページ詳細取得エラー (ID: ${id}):`, error);
+    return null;
   }
 }
 
-export default async function WikiDetailPage({ params }: { params: { id: string } }) {
-  const { page, blocks, relatedPages } = await getPageDetail(params.id);
+export default async function WikiDetailPage({ params }: PageProps) {
+  const pageData = await fetchPageData(params.id);
+  
+  if (!pageData) {
+    notFound();
+  }
   
   return (
     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -114,26 +66,26 @@ export default async function WikiDetailPage({ params }: { params: { id: string 
             ウィキ一覧に戻る
           </Link>
           
-          <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">{page.title}</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">{pageData.page.title}</h1>
           
           <div className="flex flex-wrap items-center gap-4 text-sm text-gray-600">
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-1" />
-              作成: {new Date(page.created_time).toLocaleDateString('ja-JP')}
+              作成: {new Date(pageData.page.created_time).toLocaleDateString('ja-JP')}
             </div>
             <div className="flex items-center">
               <Calendar className="h-4 w-4 mr-1" />
-              更新: {new Date(page.last_edited_time).toLocaleDateString('ja-JP')}
+              更新: {new Date(pageData.page.last_edited_time).toLocaleDateString('ja-JP')}
             </div>
-            {page.category && (
-              <Link href={`/wiki?category=${encodeURIComponent(page.category)}`} className="flex items-center">
+            {pageData.page.category && (
+              <Link href={`/wiki?category=${encodeURIComponent(pageData.page.category)}`} className="flex items-center">
                 <Tag className="h-4 w-4 mr-1" />
-                {page.category}
+                {pageData.page.category}
               </Link>
             )}
-            {page.url && (
+            {pageData.page.url && (
               <a 
-                href={page.url} 
+                href={pageData.page.url} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="flex items-center"
@@ -148,7 +100,7 @@ export default async function WikiDetailPage({ params }: { params: { id: string 
         <div className="bg-white border border-gray-200 rounded-lg p-6 sm:p-8 shadow-sm">
           {/* ブロックレンダリング */}
           <div className="prose max-w-none">
-            {blocks.map((block: any) => (
+            {pageData.blocks.map((block: any) => (
               <BlockRenderer key={block.id} block={block} />
             ))}
           </div>
@@ -160,9 +112,9 @@ export default async function WikiDetailPage({ params }: { params: { id: string 
         <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm mb-6 sticky top-4">
           <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">関連ページ</h3>
           
-          {relatedPages && relatedPages.length > 0 ? (
+          {pageData.relatedPages && pageData.relatedPages.length > 0 ? (
             <ul className="space-y-3">
-              {relatedPages.map((relatedPage: any) => (
+              {pageData.relatedPages.map((relatedPage: any) => (
                 <li key={relatedPage.id}>
                   <Link 
                     href={`/wiki/${relatedPage.id}`} 

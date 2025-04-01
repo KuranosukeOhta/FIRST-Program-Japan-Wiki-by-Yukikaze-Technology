@@ -26,8 +26,8 @@ interface LatestPages {
 
 async function getHomeStats(): Promise<WikiStats> {
   try {
-    // 開発環境またはVercel環境でダミーデータを使用
-    if (process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview' || process.env.VERCEL_ENV === 'production') {
+    // 開発環境のみダミーデータを使用
+    if (process.env.NODE_ENV === 'development') {
       return {
         totalPages: 10,
         latestSync: {
@@ -85,8 +85,8 @@ async function getHomeStats(): Promise<WikiStats> {
 
 async function getLatestPages(): Promise<LatestPages> {
   try {
-    // 開発環境またはVercel環境でダミーデータを使用
-    if (process.env.NODE_ENV === 'development' || process.env.VERCEL_ENV === 'preview' || process.env.VERCEL_ENV === 'production') {
+    // 開発環境のみダミーデータを使用
+    if (process.env.NODE_ENV === 'development') {
       return {
         pages: [
           { id: '1', title: 'FRC 2024 ルール概要', category: 'FRC', last_edited_time: '2024-01-15T12:00:00Z' },

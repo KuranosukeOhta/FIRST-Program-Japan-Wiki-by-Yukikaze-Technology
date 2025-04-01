@@ -12,24 +12,59 @@ interface PageProps {
   };
 }
 
+// ページデータの型定義
+interface PageData {
+  page: {
+    id: string;
+    title: string;
+    category?: string;
+    last_edited_time: string;
+    created_time: string;
+    url?: string;
+  };
+  blocks: any[];
+  relatedPages: Array<{
+    id: string;
+    title: string;
+    category?: string;
+  }>;
+}
+
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const pageData = await fetchPageData(params.id);
   
   return {
-    title: `${pageData?.title || 'ページが見つかりません'} | FIRST Japan Wiki`,
-    description: pageData?.description || 'FIRST Program Japan Wikiのページです',
+    title: `${pageData?.page?.title || 'ページが見つかりません'} | FIRST Japan Wiki`,
+    description: pageData?.page?.category ? `${pageData.page.category}カテゴリの記事です` : 'FIRST Program Japan Wikiのページです',
   };
 }
 
-async function fetchPageData(id: string) {
+async function fetchPageData(id: string): Promise<PageData | null> {
   // 開発環境のみダミーデータを返す
   if (process.env.NODE_ENV === 'development') {
     return {
-      id,
-      title: 'FRC 2024 ルール概要（開発モード）',
-      category: 'FRC',
-      blocks: [],
-      description: 'これは開発モードのダミーページです',
+      page: {
+        id,
+        title: 'FRC 2024 ルール概要（開発モード）',
+        category: 'FRC',
+        last_edited_time: new Date().toISOString(),
+        created_time: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString() // 1週間前
+      },
+      blocks: [
+        {
+          id: 'block1',
+          type: 'paragraph',
+          paragraph: {
+            rich_text: [
+              {
+                type: 'text',
+                text: { content: 'これは開発モードのダミーページです。' },
+                annotations: { bold: false, italic: false, underline: false }
+              }
+            ]
+          }
+        }
+      ],
       relatedPages: [
         { id: '2', title: 'FTC パーツリスト', category: 'FTC' },
         { id: '3', title: 'プログラミング入門', category: 'チュートリアル' }
@@ -112,27 +147,8 @@ export default async function WikiDetailPage({ params }: PageProps) {
         <div className="bg-white border border-gray-200 rounded-lg p-5 shadow-sm mb-6 sticky top-4">
           <h3 className="text-lg font-semibold mb-4 pb-2 border-b border-gray-200">関連ページ</h3>
           
-          {pageData.relatedPages && pageData.relatedPages.length > 0 ? (
-            <ul className="space-y-3">
-              {pageData.relatedPages.map((relatedPage: any) => (
-                <li key={relatedPage.id}>
-                  <Link 
-                    href={`/wiki/${relatedPage.id}`} 
-                    className="text-blue-600 hover:text-blue-800 hover:underline"
-                  >
-                    {relatedPage.title}
-                  </Link>
-                  {relatedPage.category && (
-                    <span className="ml-2 text-xs text-gray-500">
-                      {relatedPage.category}
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-gray-500 text-sm">関連ページはありません</p>
-          )}
+          <RelatedPages pages={pageData.relatedPages || []} />
+          
         </div>
       </div>
     </div>

@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase';
 
+// APIルートを動的に生成するように設定
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: Request) {
   try {
     const supabase = createSupabaseClient();
@@ -34,7 +37,7 @@ export async function GET(request: Request) {
     
     if (error) {
       console.error('ページ一覧取得エラー:', error);
-      return NextResponse.json({ error: 'ページ一覧取得エラー' }, { status: 500 });
+      return NextResponse.json({ error: 'ページ一覧取得エラー: ' + error.message }, { status: 500 });
     }
     
     // カテゴリー一覧を取得

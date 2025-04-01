@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase';
 
+export const dynamic = 'force-dynamic'; // 常に動的に生成
+
 export async function GET() {
   try {
     const supabase = createSupabaseClient();
@@ -9,13 +11,13 @@ export async function GET() {
     const { data: latestSync, error: syncError } = await supabase
       .from('notion_sync_status')
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('last_sync_time', { ascending: false })
       .limit(1)
       .single();
     
     if (syncError) {
       console.error('同期ステータス取得エラー:', syncError);
-      return NextResponse.json({ error: 'ステータス取得エラー' }, { status: 500 });
+      return NextResponse.json({ error: '同期ステータス取得エラー: ' + syncError.message }, { status: 500 });
     }
     
     // ページ数とカテゴリの集計を取得

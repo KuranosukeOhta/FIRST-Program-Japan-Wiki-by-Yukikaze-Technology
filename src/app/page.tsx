@@ -46,7 +46,20 @@ async function getWikiStats(): Promise<WikiStats> {
   }
   
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/sync-status`, {
+    // ベースURLが設定されていない場合はダミーデータを返す
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    if (!baseUrl) {
+      console.warn('NEXT_PUBLIC_BASE_URL が設定されていません。ダミーデータを使用します。');
+      return {
+        totalPages: 0,
+        latestSync: null,
+        timeSinceLastSync: null,
+        categoryStats: {}
+      };
+    }
+    
+    // 完全なURLを使用
+    const res = await fetch(`${baseUrl}/api/sync-status`, {
       next: { revalidate: 60 } // 1分ごとに再検証
     });
     
@@ -82,7 +95,17 @@ async function getLatestPages(): Promise<LatestPages> {
   }
   
   try {
-    const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || ''}/api/wiki?limit=5`, {
+    // ベースURLが設定されていない場合はダミーデータを返す
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    if (!baseUrl) {
+      console.warn('NEXT_PUBLIC_BASE_URL が設定されていません。ダミーデータを使用します。');
+      return {
+        pages: []
+      };
+    }
+    
+    // 完全なURLを使用
+    const res = await fetch(`${baseUrl}/api/wiki?limit=5`, {
       next: { revalidate: 60 } // 1分ごとに再検証
     });
     

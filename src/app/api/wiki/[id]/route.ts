@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseClient } from '@/lib/supabase';
 
+// APIルートを動的に生成するように設定
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -22,7 +25,7 @@ export async function GET(
     
     if (pageError) {
       console.error('ページ取得エラー:', pageError);
-      return NextResponse.json({ error: 'ページが見つかりません' }, { status: 404 });
+      return NextResponse.json({ error: 'ページが見つかりません: ' + pageError.message }, { status: 404 });
     }
     
     // ページのブロック（コンテンツ）を取得
@@ -34,7 +37,7 @@ export async function GET(
     
     if (blockError) {
       console.error('ブロック取得エラー:', blockError);
-      return NextResponse.json({ error: 'ページコンテンツの取得に失敗しました' }, { status: 500 });
+      return NextResponse.json({ error: 'ページコンテンツの取得に失敗しました: ' + blockError.message }, { status: 500 });
     }
     
     // 関連ページを取得（同じカテゴリのページ）

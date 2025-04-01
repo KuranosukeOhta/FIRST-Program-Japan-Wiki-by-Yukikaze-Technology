@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { ArrowRight, BookOpen, RefreshCw, Tag } from 'lucide-react';
+import { ArrowRight, BookOpen, RefreshCw, Tag, Search, Filter } from 'lucide-react';
+import HomeButtons from '@/components/HomeButtons';
 
 // 型定義
 interface WikiStats {
@@ -129,28 +130,15 @@ export default async function Home() {
       {/* ヒーローセクション */}
       <section className="bg-blue-50 -mx-4 px-4 py-12 sm:py-16 rounded-lg">
         <div className="text-center max-w-3xl mx-auto">
-          <h1 className="text-4xl sm:text-5xl font-bold text-blue-800 mb-6">
-            FIRST Program Japan Wiki
+          <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4 leading-tight">
+            FIRST Program Japan <br />
+            <span className="text-blue-200">非公式ウィキサイト</span>
           </h1>
-          <p className="text-xl text-gray-700 mb-8">
-            FIRSTプログラムに関する情報を共有し、日本のロボティクス教育を盛り上げるためのコミュニティウィキです。
+          <p className="text-xl text-blue-100 mb-8">
+            ロボティクス競技会に関する情報共有のためのコミュニティサイト
           </p>
-          <div className="flex flex-wrap justify-center gap-4">
-            <Link 
-              href="/wiki" 
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-lg font-medium flex items-center"
-            >
-              <BookOpen className="mr-2 h-5 w-5" />
-              ウィキを見る
-            </Link>
-            <a 
-              href="#" 
-              onClick={(e) => e.preventDefault()}
-              className="bg-white hover:bg-gray-100 text-blue-600 border border-blue-300 px-6 py-3 rounded-lg text-lg font-medium"
-            >
-              詳細を見る
-            </a>
-          </div>
+          
+          <HomeButtons />
         </div>
       </section>
       

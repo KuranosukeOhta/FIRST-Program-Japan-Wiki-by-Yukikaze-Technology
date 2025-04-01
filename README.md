@@ -1,36 +1,79 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# FIRST Program Japan Wiki
 
-## Getting Started
+FIRSTプログラム（For Inspiration and Recognition of Science and Technology）に関する情報を共有するためのウィキサイトです。Notionと連携して、最新の情報を常に反映します。
 
-First, run the development server:
+## 技術スタック
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- [Next.js](https://nextjs.org/) - Reactフレームワーク
+- [Supabase](https://supabase.io/) - データベースとユーザー認証
+- [Notion API](https://developers.notion.com/) - コンテンツ管理
+- [Tailwind CSS](https://tailwindcss.com/) - スタイリング
+- [Vercel](https://vercel.com/) - ホスティングと自動デプロイ
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 開発環境のセットアップ
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 前提条件
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Node.js 18.x以上
+- npm または yarn
+- Supabaseアカウント
+- NotionのAPIキーとデータベースID
 
-## Learn More
+### インストール手順
 
-To learn more about Next.js, take a look at the following resources:
+1. リポジトリをクローンする
+   ```bash
+   git clone https://github.com/yourusername/first-program-japan-wiki.git
+   cd first-program-japan-wiki
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. 依存パッケージをインストールする
+   ```bash
+   npm install
+   # または
+   yarn install
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. 環境変数を設定する
+   `.env.example`を`.env.local`にコピーして、必要な環境変数を設定します。
+   ```bash
+   cp .env.example .env.local
+   ```
+   そして`.env.local`ファイルを編集して、Supabase接続情報とNotion APIキーなどを設定します。
 
-## Deploy on Vercel
+4. 開発サーバーを起動する
+   ```bash
+   npm run dev
+   # または
+   yarn dev
+   ```
+   ブラウザで`http://localhost:3000`を開いて確認できます。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## データベース構造
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Supabaseには以下のテーブルがあります：
+
+- `notion_pages` - Notionのページ情報
+- `notion_blocks` - ページのコンテンツブロック
+- `notion_sync_status` - 同期処理のステータス
+
+## デプロイ方法
+
+このプロジェクトはVercelにデプロイすることを想定しています。
+
+1. [Vercel](https://vercel.com)にアカウントを作成し、GitHubリポジトリと連携します。
+2. 環境変数を設定します。
+3. デプロイボタンをクリックします。
+
+## 定期的なデータ同期
+
+Vercelのクロンジョブ機能を使って、Notionからのデータ同期を定期的に行います。
+`vercel.json`ファイルに設定されています。
+
+## ライセンス
+
+MITライセンス
+
+## 開発者
+
+Yukikaze Technology 

@@ -4,7 +4,7 @@
   "devCommand": "npm run dev",
   "framework": "nextjs",
   "functions": {
-    "/api/sync-notion": {
+    "api/sync-notion": {
       "maxDuration": 60
     }
   },

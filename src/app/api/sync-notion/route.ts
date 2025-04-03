@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { extractTitle, extractCategory } from '@/lib/notion';
+import { extractTitle, extractCategory, extractAuthors, extractStatus, isPublished, getNotionPageUrl } from '@/lib/notion';
 import { createSupabaseAdmin } from '@/lib/supabase';
 import { 
   PageObjectResponse, 
@@ -21,7 +21,16 @@ async function fetchDatabase(databaseId: string) {
   });
 }
 
-async function queryDatabase(databaseId: string) {
+// ページング処理を含むデータベースクエリ関数
+async function queryDatabase(databaseId: string, startCursor?: string, pageSize: number = 10) {
+  const body: any = {
+    page_size: pageSize
+  };
+  
+  if (startCursor) {
+    body.start_cursor = startCursor;
+  }
+  
   return axios({
     method: 'post',
     url: `https://api.notion.com/v1/databases/${databaseId}/query`,
@@ -29,7 +38,8 @@ async function queryDatabase(databaseId: string) {
       'Authorization': `Bearer ${process.env.NOTION_API_KEY}`,
       'Notion-Version': '2022-06-28',
       'Content-Type': 'application/json'
-    }
+    },
+    data: body
   });
 }
 
@@ -44,7 +54,34 @@ async function fetchBlockChildren(blockId: string) {
   });
 }
 
+interface SyncParams {
+  publishedOnly?: boolean;
+  pageSize?: number;
+  maxPages?: number; // 処理する最大ページ数（バッチ処理のため）
+  startCursor?: string;
+  debugLog?: boolean;
+}
+
+// NotionのAPIからのレスポンスに対応する型
+type NotionPage = PageObjectResponse | PartialPageObjectResponse;
+type NotionBlock = BlockObjectResponse | PartialBlockObjectResponse;
+
 export async function POST(request: Request) {
+  // リクエストパラメータの取得
+  let params: SyncParams = {};
+  try {
+    const body = await request.json();
+    params = body;
+  } catch (e) {
+    // ボディがない場合はデフォルト値を使用
+    params = {
+      publishedOnly: true,
+      pageSize: 10,
+      maxPages: undefined, // 制限なし
+      debugLog: true
+    };
+  }
+  
   // 認証チェック
   const authHeader = request.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.SYNC_API_SECRET}`) {
@@ -77,136 +114,213 @@ export async function POST(request: Request) {
     const databaseId = process.env.NOTION_DATABASE_ID as string;
     console.log(`Notionデータベース(${databaseId})からページ一覧を取得中...`);
     
-    const pagesResponse = await queryDatabase(databaseId);
-    const pages = pagesResponse.data.results;
+    let startCursor = params.startCursor;
+    let hasMore = true;
+    let processedPages = 0;
+    let totalPages = 0;
+    let totalPagesFetched = 0;
     
     let pagesCount = 0;
     let blocksCount = 0;
     const errors: any[] = [];
     
-    console.log(`${pages.length}ページを処理します...`);
-    
-    // 各ページを処理
-    for (const page of pages) {
-      try {
-        console.log(`ページ処理中: ${page.id}`);
-        
-        // ページオブジェクトがpageタイプであるか確認
-        if (page.object !== 'page') {
-          console.error(`不正なページオブジェクト: ${page.id}`);
-          errors.push({ id: page.id, error: '不正なページオブジェクト', type: 'page' });
-          continue;
-        }
-        
-        // ページデータをSupabaseに保存
-        const pageData: {
-          id: string;
-          title: string;
-          category: string;
-          last_synced_at: string;
-          raw_data: any;
-          properties: any;
-          created_time?: string;
-          last_edited_time?: string;
-          [key: string]: any;
-        } = {
-          id: page.id,
-          title: extractTitle(page),
-          category: extractCategory(page),
-          last_synced_at: new Date().toISOString(),
-          raw_data: page,
-          properties: page.properties || {},
-        };
-        
-        // 存在する場合のみプロパティを追加
-        if (page.created_time) {
-          pageData.created_time = page.created_time;
-        }
-        
-        if (page.last_edited_time) {
-          pageData.last_edited_time = page.last_edited_time;
-        }
-        
-        const { error: pageError } = await supabase
-          .from('notion_pages')
-          .upsert(pageData);
-        
-        if (pageError) {
-          console.error(`ページ保存エラー(${page.id}):`, pageError);
-          errors.push({ id: page.id, error: pageError.message, type: 'page' });
-          continue;
-        }
-        
-        pagesCount++;
-        
-        // ページのブロック（コンテンツ）を取得
-        console.log(`ブロックデータ取得中: ${page.id}`);
-        const blocksResponse = await fetchBlockChildren(page.id);
-        const blocks = blocksResponse.data.results;
-        
-        // 既存のブロックを削除（クリーンアップ）
-        const { error: deleteError } = await supabase
-          .from('notion_blocks')
-          .delete()
-          .eq('page_id', page.id);
-        
-        if (deleteError) {
-          console.error(`ブロック削除エラー(${page.id}):`, deleteError);
-        }
-        
-        // 新しいブロックを挿入
-        for (let i = 0; i < blocks.length; i++) {
-          const block = blocks[i];
+    // ページを取得して処理するループ
+    while (hasMore && (!params.maxPages || processedPages < params.maxPages)) {
+      const pageSize = params.pageSize || 10;
+      const pagesResponse = await queryDatabase(databaseId, startCursor, pageSize);
+      const pages = pagesResponse.data.results;
+      const nextCursor = pagesResponse.data.next_cursor;
+      hasMore = pagesResponse.data.has_more;
+      startCursor = nextCursor;
+      
+      totalPagesFetched += pages.length;
+      
+      // この取得したページバッチのログ
+      console.log(`${pages.length}ページを取得しました (合計 ${totalPagesFetched}ページ)...`);
+      
+      // 公開済みページのみをフィルタリング（必要な場合）
+      const filteredPages = params.publishedOnly 
+        ? pages.filter(page => isPublished(page))
+        : pages;
+      
+      if (params.publishedOnly) {
+        console.log(`${filteredPages.length}/${pages.length}ページが公開済みステータスです`);
+      }
+      
+      totalPages += filteredPages.length;
+      
+      // 各ページを処理
+      for (const page of filteredPages as NotionPage[]) {
+        try {
+          processedPages++;
+          const pageTitle = extractTitle(page);
+          const pageUrl = getNotionPageUrl(page.id);
           
-          // ブロックデータをSupabaseに保存
-          const blockData: {
-            id: string;
-            page_id: string;
-            type: string;
-            content: any;
-            has_children: boolean;
-            sort_order: number;
-            last_synced_at: string;
-            created_time?: string;
-            last_edited_time?: string;
-            [key: string]: any;
-          } = {
-            id: block.id,
-            page_id: page.id,
-            type: block.type || 'unknown',
-            content: block,
-            has_children: block.has_children || false,
-            sort_order: i,
-            last_synced_at: new Date().toISOString()
-          };
-          
-          // 存在する場合のみプロパティを追加
-          if (block.created_time) {
-            blockData.created_time = block.created_time;
+          if (params.debugLog) {
+            console.log(`ページ処理中 (${processedPages}/${totalPages}): ${pageTitle}`);
+            console.log(`- ID: ${page.id}`);
+            console.log(`- URL: ${pageUrl}`);
+          } else {
+            console.log(`ページ処理中: ${page.id} - ${pageTitle}`);
           }
           
-          if (block.last_edited_time) {
-            blockData.last_edited_time = block.last_edited_time;
-          }
-          
-          const { error: blockError } = await supabase
-            .from('notion_blocks')
-            .insert(blockData);
-          
-          if (blockError) {
-            console.error(`ブロック保存エラー(${block.id}):`, blockError);
-            errors.push({ id: block.id, error: blockError.message, type: 'block' });
+          // ページオブジェクトがpageタイプであるか確認
+          if (page.object !== 'page') {
+            console.error(`不正なページオブジェクト: ${page.id}`);
+            errors.push({ id: page.id, error: '不正なページオブジェクト', type: 'page' });
             continue;
           }
           
-          blocksCount++;
+          // プロパティをすべて抽出
+          const pageCategory = extractCategory(page);
+          const pageAuthors = extractAuthors(page);
+          const pageStatus = extractStatus(page);
+          
+          // ページデータをSupabaseに保存
+          const pageData: {
+            id: string;
+            title: string;
+            category: string;
+            authors: string[];
+            status: string;
+            last_synced_at: string;
+            raw_data: any;
+            properties: any;
+            created_time?: string;
+            last_edited_time?: string;
+            notion_url: string;
+            [key: string]: any;
+          } = {
+            id: page.id,
+            title: pageTitle,
+            category: pageCategory,
+            authors: pageAuthors,
+            status: pageStatus,
+            last_synced_at: new Date().toISOString(),
+            raw_data: page,
+            properties: page.properties || {},
+            notion_url: pageUrl
+          };
+          
+          // 存在する場合のみプロパティを追加
+          if (page.created_time) {
+            pageData.created_time = page.created_time;
+          }
+          
+          if (page.last_edited_time) {
+            pageData.last_edited_time = page.last_edited_time;
+          }
+          
+          const { error: pageError } = await supabase
+            .from('notion_pages')
+            .upsert(pageData);
+          
+          if (pageError) {
+            console.error(`ページ保存エラー(${page.id}):`, pageError);
+            errors.push({ id: page.id, error: pageError.message, type: 'page' });
+            continue;
+          }
+          
+          pagesCount++;
+          
+          // ページのブロック（コンテンツ）を取得
+          if (params.debugLog) {
+            console.log(`ブロックデータ取得中: ${page.id} (${pageTitle})`);
+          } else {
+            console.log(`ブロックデータ取得中: ${page.id}`);
+          }
+          
+          const blocksResponse = await fetchBlockChildren(page.id);
+          const blocks = blocksResponse.data.results;
+          
+          // 既存のブロックを削除（クリーンアップ）
+          const { error: deleteError } = await supabase
+            .from('notion_blocks')
+            .delete()
+            .eq('page_id', page.id);
+          
+          if (deleteError) {
+            console.error(`ブロック削除エラー(${page.id}):`, deleteError);
+          }
+          
+          // 新しいブロックを挿入
+          for (let i = 0; i < blocks.length; i++) {
+            const block = blocks[i] as NotionBlock;
+            
+            // 進捗状況ログ（多数のブロックがある場合）
+            if (params.debugLog && blocks.length > 20 && i % 20 === 0) {
+              console.log(`  - ブロック処理中: ${i+1}/${blocks.length}`);
+            }
+            
+            // ブロックデータをSupabaseに保存
+            const blockData: {
+              id: string;
+              page_id: string;
+              type: string;
+              content: any;
+              has_children: boolean;
+              sort_order: number;
+              last_synced_at: string;
+              created_time?: string;
+              last_edited_time?: string;
+              [key: string]: any;
+            } = {
+              id: block.id,
+              page_id: page.id,
+              type: block.type || 'unknown',
+              content: block,
+              has_children: block.has_children || false,
+              sort_order: i,
+              last_synced_at: new Date().toISOString()
+            };
+            
+            // 存在する場合のみプロパティを追加
+            if (block.created_time) {
+              blockData.created_time = block.created_time;
+            }
+            
+            if (block.last_edited_time) {
+              blockData.last_edited_time = block.last_edited_time;
+            }
+            
+            const { error: blockError } = await supabase
+              .from('notion_blocks')
+              .insert(blockData);
+            
+            if (blockError) {
+              console.error(`ブロック保存エラー(${block.id}):`, blockError);
+              errors.push({ id: block.id, error: blockError.message, type: 'block' });
+              continue;
+            }
+            
+            blocksCount++;
+          }
+          
+          if (params.debugLog) {
+            console.log(`ページ完了: ${page.id} - "${pageTitle}" (${blocks.length}ブロック) [${processedPages}/${totalPages}]`);
+            // 進捗率を計算して表示（合計ページ数が判明している場合）
+            if (totalPagesFetched > 0) {
+              const progressPercent = Math.round((processedPages / totalPagesFetched) * 100);
+              console.log(`全体の進捗: ${progressPercent}% (${processedPages}/${totalPagesFetched}ページ)`);
+            }
+          } else {
+            console.log(`ページ完了: ${page.id} (${blocks.length}ブロック)`);
+          }
+        } catch (pageError: any) {
+          console.error(`ページ処理エラー(${page.id}):`, pageError);
+          errors.push({ id: page.id, error: pageError.message, type: 'page_process' });
         }
-        
-        console.log(`ページ完了: ${page.id} (${blocks.length}ブロック)`);
-      } catch (pageError: any) {
-        console.error(`ページ処理エラー(${page.id}):`, pageError);
-        errors.push({ id: page.id, error: pageError.message, type: 'page_process' });
       }
+      
+      // 最大ページ数に達した、またはこれ以上ページがない場合はループを終了
+      if (!hasMore || (params.maxPages && processedPages >= params.maxPages)) {
+        break;
+      }
+    }
+    
+    // 次のカーソルがある場合（まだページが残っている場合）のログ
+    if (hasMore) {
+      console.log(`まだ処理していないページがあります。next_cursor: ${startCursor}`);
     }
     
     // 同期ステータスを更新
@@ -226,6 +340,10 @@ export async function POST(request: Request) {
       success: true,
       pagesCount,
       blocksCount,
+      totalPagesFetched,
+      processedPages,
+      hasMorePages: hasMore,
+      nextCursor: startCursor,
       errors: errors.length > 0 ? errors : null
     });
   } catch (error: any) {

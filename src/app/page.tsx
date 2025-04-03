@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { ArrowRight, BookOpen, RefreshCw, Tag, Search, Filter } from 'lucide-react';
+import { ArrowRight, BookOpen, RefreshCw, Tag, Search, Filter, Clock, Users } from 'lucide-react';
 import HomeButtons from '@/components/HomeButtons';
 import { getStats, getLatestPages } from '@/lib/data';
 
@@ -22,6 +22,8 @@ interface LatestPages {
     title: string;
     category: string;
     last_edited_time: string;
+    authors?: string[];
+    status?: string;
   }[];
 }
 
@@ -70,9 +72,27 @@ async function fetchLatestPages(): Promise<LatestPages> {
     if (process.env.NODE_ENV === 'development') {
       return {
         pages: [
-          { id: '1', title: 'FRC 2024 ルール概要', category: 'FRC', last_edited_time: '2024-01-15T12:00:00Z' },
-          { id: '2', title: 'FTC パーツリスト', category: 'FTC', last_edited_time: '2024-01-14T15:30:00Z' },
-          { id: '3', title: 'プログラミング入門', category: 'チュートリアル', last_edited_time: '2024-01-13T09:45:00Z' }
+          { 
+            id: '1', 
+            title: 'FRC 2024 ルール概要', 
+            category: 'FRC', 
+            last_edited_time: '2024-01-15T12:00:00Z',
+            authors: ['山田太郎']
+          },
+          { 
+            id: '2', 
+            title: 'FTC パーツリスト', 
+            category: 'FTC', 
+            last_edited_time: '2024-01-14T15:30:00Z',
+            authors: ['鈴木花子', '田中一郎']
+          },
+          { 
+            id: '3', 
+            title: 'プログラミング入門', 
+            category: 'チュートリアル', 
+            last_edited_time: '2024-01-13T09:45:00Z',
+            authors: ['佐藤次郎']
+          }
         ]
       };
     }
@@ -166,12 +186,25 @@ export default async function Home() {
                   <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
                     {page.category || '未分類'}
                   </span>
-                  <span className="text-xs text-gray-500">
-                    {new Date(page.last_edited_time).toLocaleDateString('ja-JP')}
-                  </span>
+                  <div className="flex items-center text-xs text-gray-500">
+                    <Clock className="w-3 h-3 mr-1" />
+                    {new Date(page.last_edited_time).toLocaleString('ja-JP', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
                 </div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">{page.title}</h3>
-                <p className="text-gray-600 text-sm">詳細を見る...</p>
+                {page.authors && page.authors.length > 0 && (
+                  <div className="flex items-center text-xs text-gray-600 mt-2">
+                    <Users className="w-3 h-3 mr-1" />
+                    {page.authors.join(', ')}
+                  </div>
+                )}
+                <p className="text-gray-600 text-sm mt-2">詳細を見る...</p>
               </div>
             </Link>
           ))}

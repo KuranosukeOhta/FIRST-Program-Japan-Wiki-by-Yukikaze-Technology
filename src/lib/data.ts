@@ -112,8 +112,8 @@ export async function getLatestPages(limit = 5) {
       // クエリパラメータをシンプルに保つ
       const { data: pages, error } = await supabase
         .from('notion_pages')
-        .select('id,title,category,created_time')
-        .order('created_time', { ascending: false })
+        .select('id,title,category,created_time,last_edited_time,authors,status')
+        .order('last_edited_time', { ascending: false })
         .limit(limit);
       
       if (error) {
@@ -125,10 +125,11 @@ export async function getLatestPages(limit = 5) {
         continue;
       }
       
-      // created_timeをlast_edited_timeとして返すためのマッピング
+      // 日時とauthorsがない場合に対応
       const mappedPages = pages?.map(page => ({
         ...page,
-        last_edited_time: page.created_time
+        last_edited_time: page.last_edited_time || page.created_time,
+        authors: page.authors || []
       })) || [];
       
       return { pages: mappedPages };
@@ -145,7 +146,13 @@ export async function getLatestPages(limit = 5) {
   // エラー時はダミーデータを返す
   return { 
     pages: [
-      { id: 'error-1', title: 'データ取得エラー', category: 'エラー', last_edited_time: new Date().toISOString() }
+      { 
+        id: 'error-1', 
+        title: 'データ取得エラー', 
+        category: 'エラー', 
+        last_edited_time: new Date().toISOString(),
+        authors: []
+      }
     ]
   };
 }
@@ -253,6 +260,15 @@ export async function getPageDetail(id: string) {
   const maxRetries = 3;
   let retryCount = 0;
   
+  // 関連ページの型定義
+  interface RelatedPage {
+    id: string;
+    title: string;
+    category?: string;
+    authors?: string[];
+    status?: string;
+  }
+  
   while (retryCount < maxRetries) {
     try {
       const supabase = createSupabaseClient();
@@ -260,27 +276,28 @@ export async function getPageDetail(id: string) {
       // ページ情報を取得
       const { data: page, error: pageError } = await supabase
         .from('notion_pages')
-        .select('*')
+        .select('id,title,category,created_time,last_edited_time,authors,status,notion_url')
         .eq('id', id)
         .single();
       
       if (pageError) {
-        console.error(`ページ詳細取得エラー (試行 ${retryCount + 1}/${maxRetries}):`, pageError);
-        if (pageError.code === 'PGRST116') {
-          // ページが見つからない場合は再試行しない
-          return null;
-        }
+        console.error(`ページ取得エラー (試行 ${retryCount + 1}/${maxRetries}):`, pageError);
         retryCount++;
         await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
         continue;
       }
       
-      // ブロックデータを取得
+      if (!page) {
+        console.error(`ページが見つかりません。ID: ${id}`);
+        return null;
+      }
+      
+      // ブロック（コンテンツ）情報を取得
       const { data: blocks, error: blocksError } = await supabase
         .from('notion_blocks')
-        .select('*')
+        .select('id,type,content,has_children,sort_order')
         .eq('page_id', id)
-        .order('sort_order');
+        .order('sort_order', { ascending: true });
       
       if (blocksError) {
         console.error(`ブロック取得エラー (試行 ${retryCount + 1}/${maxRetries}):`, blocksError);
@@ -289,21 +306,15 @@ export async function getPageDetail(id: string) {
         continue;
       }
       
-      // 関連ページを取得（同じカテゴリのページ）
-      interface RelatedPage {
-        id: string;
-        title: string;
-        category?: string;
-      }
-      
+      // 関連ページを取得（同じカテゴリーの別ページ）
       let relatedPages: RelatedPage[] = [];
       if (page.category) {
         const { data: related, error: relatedError } = await supabase
           .from('notion_pages')
-          .select('id,title,category')
+          .select('id,title,category,authors,status')
           .eq('category', page.category)
           .not('id', 'eq', id)
-          .order('created_time', { ascending: false })
+          .order('last_edited_time', { ascending: false })
           .limit(5);
         
         if (relatedError) {
@@ -314,10 +325,12 @@ export async function getPageDetail(id: string) {
         }
       }
       
-      // last_edited_timeがない場合の対応
+      // データ整形
       const enhancedPage = {
         ...page,
-        last_edited_time: page.created_time // created_timeをlast_edited_timeとして使用
+        last_edited_time: page.last_edited_time || page.created_time, // last_edited_timeがない場合はcreated_timeを使用
+        authors: page.authors || [],
+        status: page.status || '未設定'
       };
       
       return {

@@ -10,6 +10,7 @@ interface WikiPageResult {
     title: string;
     category: string;
     last_edited_time: string;
+    authors?: string[];
   }>;
   total: number;
   page: number;
@@ -28,16 +29,16 @@ async function fetchWikiPages(searchParams: { [key: string]: string | string[] |
   if (process.env.NODE_ENV === 'development') {
     // カテゴリでフィルタリング
     let filteredPages = [
-      { id: '1', title: 'FRC 2024 ルール概要', category: 'FRC', last_edited_time: '2024-01-15T12:00:00Z' },
-      { id: '2', title: 'FTC パーツリスト', category: 'FTC', last_edited_time: '2024-01-14T15:30:00Z' },
-      { id: '3', title: 'プログラミング入門', category: 'チュートリアル', last_edited_time: '2024-01-13T09:45:00Z' },
-      { id: '4', title: '日本大会レポート', category: 'イベント', last_edited_time: '2024-01-12T18:20:00Z' },
-      { id: '5', title: 'FLL チャレンジ攻略法', category: 'FLL', last_edited_time: '2024-01-11T14:10:00Z' },
-      { id: '6', title: 'ロボットデザイン基礎', category: 'チュートリアル', last_edited_time: '2024-01-10T10:10:00Z' },
-      { id: '7', title: 'センサー活用方法', category: 'FTC', last_edited_time: '2024-01-09T11:30:00Z' },
-      { id: '8', title: 'FRC 競技戦略', category: 'FRC', last_edited_time: '2024-01-08T16:40:00Z' },
-      { id: '9', title: 'チーム運営ガイド', category: 'その他', last_edited_time: '2024-01-07T13:20:00Z' },
-      { id: '10', title: 'スポンサー獲得術', category: 'その他', last_edited_time: '2024-01-06T09:10:00Z' },
+      { id: '1', title: 'FRC 2024 ルール概要', category: 'FRC', last_edited_time: '2024-01-15T12:00:00Z', authors: ['山田太郎'] },
+      { id: '2', title: 'FTC パーツリスト', category: 'FTC', last_edited_time: '2024-01-14T15:30:00Z', authors: ['鈴木花子', '田中一郎'] },
+      { id: '3', title: 'プログラミング入門', category: 'チュートリアル', last_edited_time: '2024-01-13T09:45:00Z', authors: ['佐藤次郎'] },
+      { id: '4', title: '日本大会レポート', category: 'イベント', last_edited_time: '2024-01-12T18:20:00Z', authors: ['山本五郎'] },
+      { id: '5', title: 'FLL チャレンジ攻略法', category: 'FLL', last_edited_time: '2024-01-11T14:10:00Z', authors: ['伊藤六郎'] },
+      { id: '6', title: 'ロボットデザイン基礎', category: 'チュートリアル', last_edited_time: '2024-01-10T10:10:00Z', authors: ['高橋七郎'] },
+      { id: '7', title: 'センサー活用方法', category: 'FTC', last_edited_time: '2024-01-09T11:30:00Z', authors: ['渡辺八郎'] },
+      { id: '8', title: 'FRC 競技戦略', category: 'FRC', last_edited_time: '2024-01-08T16:40:00Z', authors: ['斎藤九郎'] },
+      { id: '9', title: 'チーム運営ガイド', category: 'その他', last_edited_time: '2024-01-07T13:20:00Z', authors: ['小林十郎'] },
+      { id: '10', title: 'スポンサー獲得術', category: 'その他', last_edited_time: '2024-01-06T09:10:00Z', authors: ['加藤十一郎', '松本十二郎'] },
     ];
     
     if (category) {
@@ -76,9 +77,9 @@ async function fetchWikiPages(searchParams: { [key: string]: string | string[] |
     // エラー時もダミーデータを返す
     return {
       pages: [
-        { id: '1', title: 'FRC 2024 ルール概要', category: 'FRC', last_edited_time: '2024-01-15T12:00:00Z' },
-        { id: '2', title: 'FTC パーツリスト', category: 'FTC', last_edited_time: '2024-01-14T15:30:00Z' },
-        { id: '3', title: 'プログラミング入門', category: 'チュートリアル', last_edited_time: '2024-01-13T09:45:00Z' }
+        { id: '1', title: 'FRC 2024 ルール概要', category: 'FRC', last_edited_time: '2024-01-15T12:00:00Z', authors: ['山田太郎'] },
+        { id: '2', title: 'FTC パーツリスト', category: 'FTC', last_edited_time: '2024-01-14T15:30:00Z', authors: ['鈴木花子', '田中一郎'] },
+        { id: '3', title: 'プログラミング入門', category: 'チュートリアル', last_edited_time: '2024-01-13T09:45:00Z', authors: ['佐藤次郎'] }
       ],
       total: 3,
       page: 1,
@@ -198,10 +199,21 @@ export default async function WikiPage({
                     {page.category || '未分類'}
                   </span>
                   <span className="text-xs text-gray-500">
-                    最終更新: {new Date(page.last_edited_time).toLocaleDateString('ja-JP')}
+                    最終更新: {new Date(page.last_edited_time).toLocaleString('ja-JP', {
+                      year: 'numeric',
+                      month: '2-digit',
+                      day: '2-digit',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
                   </span>
                 </div>
                 <h2 className="text-xl font-semibold text-gray-800 hover:text-blue-600">{page.title}</h2>
+                {page.authors && page.authors.length > 0 && (
+                  <p className="text-sm text-gray-600 mt-1">
+                    執筆者: {page.authors.join(', ')}
+                  </p>
+                )}
               </div>
             </Link>
           ))}

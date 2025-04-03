@@ -29,15 +29,15 @@ export const BlockRenderer: React.FC<BlockRendererProps> = ({ block }) => {
     case 'image':
       return <ImageBlock block={block} />;
     case 'divider':
-      return <div className="my-4 border-b border-gray-200" />;
+      return <div className="my-8 border-b border-gray-200" />;
     case 'callout':
       return <CalloutBlock block={block} />;
     case 'quote':
       return <QuoteBlock block={block} />;
     default:
       return (
-        <div className="p-2 border border-gray-200 rounded">
-          <p className="text-sm text-gray-500">未対応のブロックタイプ: {blockType}</p>
+        <div className="my-4 p-4 bg-gray-50 border border-gray-100 rounded text-sm text-gray-500">
+          未対応のブロックタイプ: {blockType}
         </div>
       );
   }
@@ -58,7 +58,7 @@ const renderRichText = (richTextArray: any[]) => {
     if (annotations.italic) classNames += ' italic';
     if (annotations.underline) classNames += ' underline';
     if (annotations.strikethrough) classNames += ' line-through';
-    if (annotations.code) classNames += ' font-mono bg-gray-100 px-1 rounded';
+    if (annotations.code) classNames += ' font-mono text-sm px-1.5 py-0.5 bg-gray-100 rounded text-pink-600';
     
     const content = (
       <span key={index} className={classNames.trim() || undefined}>
@@ -69,7 +69,7 @@ const renderRichText = (richTextArray: any[]) => {
     // リンクの場合はaタグでラップ
     if (href) {
       return (
-        <a key={index} href={href} className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+        <a key={index} href={href} className="text-blue-600 hover:underline transition-colors" target="_blank" rel="noopener noreferrer">
           {content}
         </a>
       );
@@ -82,24 +82,41 @@ const renderRichText = (richTextArray: any[]) => {
 // 各ブロックタイプのコンポーネント
 const ParagraphBlock = ({ block }: { block: any }) => {
   const text = block.content?.paragraph?.rich_text || [];
-  if (text.length === 0) return <p className="my-2">&nbsp;</p>;
+  if (text.length === 0) return <p className="my-6">&nbsp;</p>;
   
-  return <p className="my-2">{renderRichText(text)}</p>;
+  return <p className="my-6 leading-relaxed text-gray-800">{renderRichText(text)}</p>;
 };
 
 const HeadingBlock = ({ level, block }: { level: number; block: any }) => {
   const type = `heading_${level}`;
   const text = block.content?.[type]?.rich_text || [];
   
+  const id = text.map((t: any) => t.plain_text || '').join('').toLowerCase().replace(/\s+/g, '-');
+  
   switch (level) {
     case 1:
-      return <h1 className="text-3xl font-bold mt-6 mb-4">{renderRichText(text)}</h1>;
+      return (
+        <h1 id={id} className="text-2xl font-bold mt-10 mb-6 pb-1 border-b border-gray-200">
+          {renderRichText(text)}
+          <a href={`#${id}`} className="ml-2 text-gray-300 opacity-0 hover:opacity-100 transition-opacity">#</a>
+        </h1>
+      );
     case 2:
-      return <h2 className="text-2xl font-bold mt-5 mb-3">{renderRichText(text)}</h2>;
+      return (
+        <h2 id={id} className="text-xl font-bold mt-8 mb-4">
+          {renderRichText(text)}
+          <a href={`#${id}`} className="ml-2 text-gray-300 opacity-0 hover:opacity-100 transition-opacity">#</a>
+        </h2>
+      );
     case 3:
-      return <h3 className="text-xl font-bold mt-4 mb-2">{renderRichText(text)}</h3>;
+      return (
+        <h3 id={id} className="text-lg font-bold mt-6 mb-3">
+          {renderRichText(text)}
+          <a href={`#${id}`} className="ml-2 text-gray-300 opacity-0 hover:opacity-100 transition-opacity">#</a>
+        </h3>
+      );
     default:
-      return <h4 className="text-lg font-bold mt-3 mb-2">{renderRichText(text)}</h4>;
+      return <h4 className="text-base font-bold mt-5 mb-2">{renderRichText(text)}</h4>;
   }
 };
 
@@ -107,7 +124,7 @@ const BulletedListItem = ({ block }: { block: any }) => {
   const text = block.content?.bulleted_list_item?.rich_text || [];
   
   return (
-    <li className="ml-5 list-disc my-1">
+    <li className="ml-6 my-2 relative before:content-[''] before:absolute before:w-1.5 before:h-1.5 before:bg-gray-500 before:rounded-full before:-left-4 before:top-2">
       {renderRichText(text)}
     </li>
   );
@@ -117,7 +134,7 @@ const NumberedListItem = ({ block }: { block: any }) => {
   const text = block.content?.numbered_list_item?.rich_text || [];
   
   return (
-    <li className="ml-5 list-decimal my-1">
+    <li className="ml-6 my-2 list-decimal">
       {renderRichText(text)}
     </li>
   );
@@ -128,14 +145,17 @@ const TodoBlock = ({ block }: { block: any }) => {
   const checked = block.content?.to_do?.checked || false;
   
   return (
-    <div className="flex items-start my-2">
-      <input 
-        type="checkbox" 
-        checked={checked} 
-        readOnly 
-        className="mt-1 mr-2" 
-      />
-      <div>{renderRichText(text)}</div>
+    <div className="flex items-start my-3">
+      <div className={`flex-shrink-0 w-5 h-5 mr-2 mt-0.5 border rounded ${checked ? 'bg-blue-500 border-blue-500' : 'border-gray-300'} flex items-center justify-center`}>
+        {checked && (
+          <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
+          </svg>
+        )}
+      </div>
+      <div className={checked ? 'line-through text-gray-500' : 'text-gray-800'}>
+        {renderRichText(text)}
+      </div>
     </div>
   );
 };
@@ -145,17 +165,16 @@ const ToggleBlock = ({ block }: { block: any }) => {
   const text = block.content?.toggle?.rich_text || [];
   
   return (
-    <div className="my-2">
+    <div className="my-4 border border-gray-100 rounded overflow-hidden">
       <button 
         onClick={() => setIsOpen(!isOpen)} 
-        className="flex items-center w-full text-left font-medium"
+        className="flex items-center w-full text-left font-medium p-3 bg-gray-50 hover:bg-gray-100 transition-colors"
       >
-        <span className="mr-2">{isOpen ? '▼' : '▶'}</span>
-        {renderRichText(text)}
+        <span className="mr-2 text-gray-500">{isOpen ? '▼' : '▶'}</span>
+        <span className="font-medium">{renderRichText(text)}</span>
       </button>
       {isOpen && block.has_children && (
-        <div className="ml-6 mt-2 pl-2 border-l-2 border-gray-200">
-          {/* 子ブロックのレンダリングはサポートされていない */}
+        <div className="p-4 border-t border-gray-100 bg-white">
           <p className="text-sm text-gray-500">子ブロックの表示は現在サポートされていません</p>
         </div>
       )}
@@ -166,14 +185,15 @@ const ToggleBlock = ({ block }: { block: any }) => {
 const CodeBlock = ({ block }: { block: any }) => {
   const text = block.content?.code?.rich_text || [];
   const language = block.content?.code?.language || 'plain text';
+  const codeContent = text.map((t: { plain_text: string }) => t.plain_text).join('');
   
   return (
-    <div className="my-4">
-      <div className="bg-gray-800 text-gray-200 rounded-t px-3 py-1 text-xs">
-        {language}
+    <div className="my-6 overflow-hidden rounded-lg shadow-sm">
+      <div className="bg-gray-800 text-gray-400 py-2 px-4 text-xs flex justify-between items-center">
+        <span>{language}</span>
       </div>
-      <pre className="bg-gray-100 p-4 overflow-x-auto rounded-b">
-        <code>{text.map((t: { plain_text: string }) => t.plain_text).join('')}</code>
+      <pre className="bg-gray-900 p-4 overflow-x-auto text-gray-200 text-sm">
+        <code>{codeContent}</code>
       </pre>
     </div>
   );
@@ -193,19 +213,21 @@ const ImageBlock = ({ block }: { block: any }) => {
   
   if (!imageUrl) {
     return (
-      <div className="my-4 p-4 border border-gray-200 rounded text-center text-gray-500">
+      <div className="my-6 p-4 border border-gray-200 rounded text-center text-gray-500">
         画像を読み込めません
       </div>
     );
   }
   
   return (
-    <figure className="my-4">
-      <img 
-        src={imageUrl} 
-        alt={caption || '画像'} 
-        className="mx-auto max-w-full h-auto rounded"
-      />
+    <figure className="my-8">
+      <div className="overflow-hidden rounded-lg shadow-sm">
+        <img 
+          src={imageUrl} 
+          alt={caption || '画像'} 
+          className="w-full h-auto object-cover"
+        />
+      </div>
       {caption && (
         <figcaption className="text-center text-sm text-gray-500 mt-2">
           {caption}
@@ -220,9 +242,11 @@ const CalloutBlock = ({ block }: { block: any }) => {
   const emoji = block.content?.callout?.icon?.emoji || '💡';
   
   return (
-    <div className="my-4 p-4 bg-gray-50 rounded flex items-start">
-      <div className="mr-2 text-xl">{emoji}</div>
-      <div>{renderRichText(text)}</div>
+    <div className="my-6 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400 flex items-start">
+      <div className="mr-3 text-xl leading-none">{emoji}</div>
+      <div className="flex-1 text-blue-800">
+        {renderRichText(text)}
+      </div>
     </div>
   );
 };
@@ -231,7 +255,7 @@ const QuoteBlock = ({ block }: { block: any }) => {
   const text = block.content?.quote?.rich_text || [];
   
   return (
-    <blockquote className="my-4 pl-4 border-l-4 border-gray-300 italic">
+    <blockquote className="my-6 pl-5 py-1 border-l-4 border-gray-200 text-gray-700 italic">
       {renderRichText(text)}
     </blockquote>
   );

@@ -3,6 +3,11 @@
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "framework": "nextjs",
+  "functions": {
+    "api/sync-notion/**": {
+      "maxDuration": 60
+    }
+  },
   "crons": [
     {
       "path": "/api/sync-notion",

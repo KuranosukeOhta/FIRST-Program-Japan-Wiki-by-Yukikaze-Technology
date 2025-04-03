@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useMemo, Component, ErrorInfo, ReactNode } from 'react';
 import { BlockRenderer } from './notion/BlockRenderer';
 
@@ -810,4 +812,4 @@ const NotionContent: React.FC<NotionContentProps> = ({ blocks }) => {
   return <div className="notion-content">{renderedBlocks}</div>;
 };
 
-export default React.memo(NotionContent); 
+export default NotionContent; 

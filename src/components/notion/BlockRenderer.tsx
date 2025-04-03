@@ -1,7 +1,10 @@
+"use client";
+
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/cjs/styles/prism';
+import { tomorrow } from 'react-syntax-highlighter/dist/cjs/styles/prism';
 
 type BlockRendererProps = {
   block: any;
@@ -53,89 +56,98 @@ const renderRichText = (richTextArray: any[]) => {
   }
   
   return richTextArray.map((textItem, index) => {
-    const annotations = textItem.annotations || {};
-    let classNames = '';
+    // リッチテキストがない場合は空のスパンを返す
+    if (!textItem) return <span key={`empty-${index}`}></span>;
     
-    if (annotations.bold) classNames += 'font-bold ';
-    if (annotations.italic) classNames += 'italic ';
-    if (annotations.underline) classNames += 'underline ';
-    if (annotations.strikethrough) classNames += 'line-through ';
+    // プレーンテキストがない場合は空白を返す
+    const content = textItem.text?.content || textItem.plain_text || '';
+    if (!content) return <span key={`empty-${index}`}></span>;
+    
+    // スタイル適用
+    let element = <span key={index}>{content}</span>;
+    
+    // アノテーション（装飾）の適用
+    const annotations = textItem.annotations || {};
+    if (annotations.bold) {
+      element = <strong key={index}>{element}</strong>;
+    }
+    if (annotations.italic) {
+      element = <em key={index}>{element}</em>;
+    }
+    if (annotations.strikethrough) {
+      element = <del key={index}>{element}</del>;
+    }
+    if (annotations.underline) {
+      element = <u key={index}>{element}</u>;
+    }
     if (annotations.code) {
-      classNames += 'bg-gray-100 px-1.5 py-0.5 rounded text-sm font-mono ';
+      element = <code key={index} className="px-1 py-0.5 bg-gray-100 rounded text-sm">{element}</code>;
     }
     
-    const color = annotations.color !== 'default' 
-      ? `text-${annotations.color.replace('_background', 'bg')}` 
-      : '';
+    // リンクの場合
+    if (textItem.href || textItem.text?.link?.url) {
+      const url = textItem.href || textItem.text?.link?.url;
+      element = (
+        <a 
+          key={index}
+          href={url} 
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-blue-600 hover:underline"
+        >
+          {element}
+        </a>
+      );
+    }
     
-    const content = (
-      <span key={index} className={`${classNames} ${color}`}>
-        {textItem.href ? (
-          <a 
-            href={textItem.href} 
-            target="_blank" 
-            rel="noopener noreferrer"
-            className="text-accent-color underline hover:opacity-80"
-          >
-            {textItem.plain_text}
-          </a>
-        ) : (
-          textItem.plain_text
-        )}
-      </span>
-    );
-    
-    return content;
+    return element;
   });
 };
 
 // 各ブロックタイプのコンポーネント
 const ParagraphBlock = ({ block }: { block: any }) => {
+  const content = block.content ? JSON.parse(block.content) : { paragraph: { rich_text: [] } };
+  const richText = content.paragraph?.rich_text || [];
+  
   return (
-    <p className="my-4 leading-relaxed">
-      {renderRichText(block.paragraph.rich_text)}
+    <p className="my-3 leading-relaxed">
+      {renderRichText(richText)}
     </p>
   );
 };
 
 const HeadingBlock = ({ level, block, headingId }: { level: number; block: any; headingId?: string }) => {
-  const id = headingId || `heading-${block.id.split('-')[0]}`;
-  const richTextKey = `heading_${level}`;
-  const textContent = block[richTextKey]?.rich_text;
+  const content = block.content ? JSON.parse(block.content) : { [`heading_${level}`]: { rich_text: [] } };
+  const richText = content[`heading_${level}`]?.rich_text || [];
   
-  const HeadingTag = level === 1 ? 'h1' : level === 2 ? 'h2' : 'h3';
+  const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
+  const className = {
+    1: 'text-3xl font-bold mt-10 mb-4 pb-2 border-b',
+    2: 'text-2xl font-bold mt-8 mb-3',
+    3: 'text-xl font-bold mt-6 mb-3',
+  }[level];
   
-  return React.createElement(
-    HeadingTag,
-    { 
-      id,
-      className: `font-bold ${
-        level === 1 
-          ? 'text-2xl mt-12 mb-4' 
-          : level === 2 
-            ? 'text-xl mt-10 mb-3 pb-1 border-b border-gray-200' 
-            : 'text-lg mt-8 mb-2'
-      }`
-    },
-    <>
-      {renderRichText(textContent)}
-      <a 
-        href={`#${id}`} 
-        className="ml-2 opacity-0 group-hover:opacity-100 hover:opacity-100 text-accent-color"
-        aria-label="見出しへのリンク"
-      >
-        #
+  return (
+    <HeadingTag id={headingId} className={className}>
+      <a href={`#${headingId}`} className="heading-link">
+        {renderRichText(richText)}
+        <span className="heading-anchor opacity-0 group-hover:opacity-100 ml-2 text-blue-500">
+          #
+        </span>
       </a>
-    </>
+    </HeadingTag>
   );
 };
 
 const BulletedListItem = ({ block }: { block: any }) => {
+  const content = block.content ? JSON.parse(block.content) : { bulleted_list_item: { rich_text: [] } };
+  const richText = content.bulleted_list_item?.rich_text || [];
+  
   return (
-    <li className="my-1 ml-5 list-disc list-outside">
-      {renderRichText(block.bulleted_list_item.rich_text)}
+    <li className="my-1">
+      {renderRichText(richText)}
       {block.has_children && block.children && (
-        <ul className="my-2">
+        <ul className="list-disc pl-5 my-2">
           {block.children.map((child: any) => (
             <BlockRenderer key={child.id} block={child} />
           ))}
@@ -146,11 +158,14 @@ const BulletedListItem = ({ block }: { block: any }) => {
 };
 
 const NumberedListItem = ({ block }: { block: any }) => {
+  const content = block.content ? JSON.parse(block.content) : { numbered_list_item: { rich_text: [] } };
+  const richText = content.numbered_list_item?.rich_text || [];
+  
   return (
-    <li className="my-1 ml-5 list-decimal list-outside">
-      {renderRichText(block.numbered_list_item.rich_text)}
+    <li className="my-1">
+      {renderRichText(richText)}
       {block.has_children && block.children && (
-        <ol className="my-2">
+        <ol className="list-decimal pl-5 my-2">
           {block.children.map((child: any) => (
             <BlockRenderer key={child.id} block={child} />
           ))}
@@ -161,19 +176,20 @@ const NumberedListItem = ({ block }: { block: any }) => {
 };
 
 const TodoBlock = ({ block }: { block: any }) => {
-  const checked = block.to_do.checked;
+  const content = block.content ? JSON.parse(block.content) : { to_do: { rich_text: [], checked: false } };
+  const richText = content.to_do?.rich_text || [];
+  const checked = content.to_do?.checked || false;
+  
   return (
     <div className="flex items-start my-2">
-      <div className="flex items-center h-6 mr-2">
-        <input
-          type="checkbox"
-          checked={checked}
-          readOnly
-          className="w-4 h-4 border-gray-300 rounded accent-accent-color"
-        />
-      </div>
+      <input 
+        type="checkbox" 
+        checked={checked}
+        readOnly
+        className="mt-1 mr-2"
+      />
       <div className={checked ? 'line-through text-gray-500' : ''}>
-        {renderRichText(block.to_do.rich_text)}
+        {renderRichText(richText)}
       </div>
     </div>
   );
@@ -181,6 +197,8 @@ const TodoBlock = ({ block }: { block: any }) => {
 
 const ToggleBlock = ({ block }: { block: any }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const content = block.content ? JSON.parse(block.content) : { toggle: { rich_text: [] } };
+  const richText = content.toggle?.rich_text || [];
   
   return (
     <div className="my-4">
@@ -202,7 +220,7 @@ const ToggleBlock = ({ block }: { block: any }) => {
         >
           <polyline points="9 18 15 12 9 6"></polyline>
         </svg>
-        {renderRichText(block.toggle.rich_text)}
+        {renderRichText(richText)}
       </button>
       
       {isOpen && block.has_children && block.children && (
@@ -217,8 +235,13 @@ const ToggleBlock = ({ block }: { block: any }) => {
 };
 
 const CodeBlock = ({ block }: { block: any }) => {
-  const language = block.code.language.toLowerCase() || 'javascript';
-  const mappedLanguage = {
+  const codeContent = block.content ? JSON.parse(block.content) : { code: { language: 'text', rich_text: [] } };
+  const language = codeContent.code?.language?.toLowerCase() || 'text';
+  const richText = codeContent.code?.rich_text || [];
+  const codeText = richText.map((rt: any) => rt.plain_text).join('');
+  
+  // 型安全な言語マッピング
+  const languageMapping: Record<string, string> = {
     'plain text': 'text',
     'javascript': 'javascript',
     'typescript': 'typescript',
@@ -233,13 +256,15 @@ const CodeBlock = ({ block }: { block: any }) => {
     'yaml': 'yaml',
     'bash': 'bash',
     'shell': 'bash',
-  }[language] || 'text';
+  };
+  
+  const mappedLanguage = languageMapping[language] || 'text';
 
   return (
     <div className="my-6 rounded-lg overflow-hidden">
-      {block.code.caption && block.code.caption.length > 0 && (
+      {codeContent.code?.caption && codeContent.code.caption.length > 0 && (
         <div className="text-sm italic text-gray-500 mb-1">
-          {renderRichText(block.code.caption)}
+          {renderRichText(codeContent.code.caption)}
         </div>
       )}
       <div className="relative">
@@ -248,7 +273,7 @@ const CodeBlock = ({ block }: { block: any }) => {
         </div>
         <SyntaxHighlighter
           language={mappedLanguage}
-          style={vscDarkPlus}
+          style={tomorrow}
           customStyle={{
             margin: 0,
             padding: '1rem 1rem 1rem 1rem',
@@ -257,7 +282,7 @@ const CodeBlock = ({ block }: { block: any }) => {
             borderRadius: '0.375rem',
           }}
         >
-          {block.code.rich_text[0]?.plain_text || ''}
+          {codeText}
         </SyntaxHighlighter>
       </div>
     </div>
@@ -265,37 +290,34 @@ const CodeBlock = ({ block }: { block: any }) => {
 };
 
 const ImageBlock = ({ block }: { block: any }) => {
-  let src = '';
-
-  if (block.image.type === 'external') {
-    src = block.image.external.url;
-  } else if (block.image.type === 'file') {
-    src = block.image.file.url;
+  const content = block.content ? JSON.parse(block.content) : { image: { type: 'external', external: { url: '' } } };
+  const image = content.image || {};
+  const url = (image.type === 'external' ? image.external?.url : image.file?.url) || '';
+  const caption = image.caption || [];
+  
+  if (!url) {
+    return (
+      <div className="my-4 p-4 bg-red-50 rounded border border-red-200 text-sm text-red-600">
+        画像が見つかりませんでした
+      </div>
+    );
   }
-
-  const captionText = block.image.caption && block.image.caption.length > 0
-    ? block.image.caption.map((c: any) => c.plain_text).join('')
-    : '';
-
+  
   return (
-    <figure className="my-8">
-      <div className="overflow-hidden rounded-lg border border-gray-200">
+    <figure className="my-6">
+      <div className="relative overflow-hidden rounded-lg border border-gray-200">
         <Image
-          src={src}
-          alt={captionText || "画像"}
-          width={800}
-          height={450}
-          className="w-full object-cover"
-          style={{ 
-            maxHeight: '500px',
-            objectFit: 'contain' 
-          }}
-          unoptimized={block.image.type === 'external'}
+          src={url}
+          alt={caption.map((c: any) => c.plain_text).join('') || '画像'}
+          width={700}
+          height={400}
+          className="w-full h-auto object-cover"
+          style={{ maxHeight: '500px' }}
         />
       </div>
-      {captionText && (
-        <figcaption className="mt-2 text-center text-sm text-gray-500">
-          {captionText}
+      {caption.length > 0 && (
+        <figcaption className="mt-2 text-center text-sm text-gray-500 italic">
+          {renderRichText(caption)}
         </figcaption>
       )}
     </figure>
@@ -303,23 +325,27 @@ const ImageBlock = ({ block }: { block: any }) => {
 };
 
 const CalloutBlock = ({ block }: { block: any }) => {
+  const content = block.content ? JSON.parse(block.content) : { callout: { rich_text: [], icon: { type: 'emoji', emoji: 'ℹ️' } } };
+  const callout = content.callout || {};
+  const richText = callout.rich_text || [];
+  const icon = callout.icon?.emoji || 'ℹ️';
+  
   return (
-    <div className="my-6 p-4 bg-accent-color bg-opacity-5 rounded-lg border-l-4 border-accent-color flex">
-      {block.callout.icon && (
-        <div className="mr-3 text-xl">{block.callout.icon.emoji}</div>
-      )}
-      <div>
-        {renderRichText(block.callout.rich_text)}
-      </div>
+    <div className="my-6 p-4 bg-blue-50 rounded-md border-l-4 border-blue-300 flex">
+      <div className="mr-3 text-xl">{icon}</div>
+      <div className="flex-1">{renderRichText(richText)}</div>
     </div>
   );
 };
 
 const QuoteBlock = ({ block }: { block: any }) => {
+  const content = block.content ? JSON.parse(block.content) : { quote: { rich_text: [] } };
+  const richText = content.quote?.rich_text || [];
+  
   return (
     <blockquote className="my-6 pl-4 py-1 border-l-4 border-accent-color bg-gray-50 rounded-r-md italic">
       <div className="py-2">
-        {renderRichText(block.quote.rich_text)}
+        {renderRichText(richText)}
       </div>
     </blockquote>
   );

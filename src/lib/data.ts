@@ -129,7 +129,7 @@ export async function getLatestPages(limit = 5) {
       const mappedPages = pages?.map(page => ({
         ...page,
         last_edited_time: page.last_edited_time || page.created_time,
-        authors: page.authors || []
+        authors: Array.isArray(page.authors) ? page.authors : []
       })) || [];
       
       return { pages: mappedPages };

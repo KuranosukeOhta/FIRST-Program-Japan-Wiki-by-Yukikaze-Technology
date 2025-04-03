@@ -140,7 +140,7 @@ export async function POST(request: Request) {
       
       // 公開済みページのみをフィルタリング（必要な場合）
       const filteredPages = params.publishedOnly 
-        ? pages.filter(page => isPublished(page))
+        ? pages.filter((page: NotionPage) => isPublished(page))
         : pages;
       
       if (params.publishedOnly) {

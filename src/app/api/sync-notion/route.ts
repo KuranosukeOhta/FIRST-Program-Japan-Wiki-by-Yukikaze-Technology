@@ -93,7 +93,7 @@ export async function POST(request: Request) {
   } catch (e) {
     // ボディがない場合はデフォルト値を使用
     params = {
-      publishedOnly: true,
+      publishedOnly: false,
       pageSize: 10,
       maxPages: undefined, // 制限なし
       debugLog: true

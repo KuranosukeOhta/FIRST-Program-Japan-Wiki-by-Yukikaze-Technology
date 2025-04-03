@@ -321,7 +321,11 @@ export async function getPageDetail(id: string) {
           console.error(`関連ページ取得エラー (試行 ${retryCount + 1}/${maxRetries}):`, relatedError);
           // 関連ページの取得失敗は致命的ではないので再試行しない
         } else if (related) {
-          relatedPages = related;
+          // 関連ページの各ページでauthorsが配列であることを確認
+          relatedPages = related.map(page => ({
+            ...page,
+            authors: Array.isArray(page.authors) ? page.authors : []
+          }));
         }
       }
       
@@ -329,7 +333,7 @@ export async function getPageDetail(id: string) {
       const enhancedPage = {
         ...page,
         last_edited_time: page.last_edited_time || page.created_time, // last_edited_timeがない場合はcreated_timeを使用
-        authors: page.authors || [],
+        authors: Array.isArray(page.authors) ? page.authors : [],
         status: page.status || '未設定'
       };
       

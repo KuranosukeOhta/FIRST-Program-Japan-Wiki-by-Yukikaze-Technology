@@ -1,4 +1,5 @@
 import React, { useMemo, Component, ErrorInfo, ReactNode } from 'react';
+import { BlockRenderer } from './notion/BlockRenderer';
 
 interface TextContent {
   type: string;
@@ -728,94 +729,85 @@ const BlockList = ({ blocks }: { blocks: BlockContent[] }) => {
   return <>{renderedBlocks}</>;
 };
 
-const NotionContent = ({ blocks }: NotionContentProps) => {
-  // メモ化して再レンダリングを最小限に抑える
-  const memoizedContent = useMemo(() => {
-    if (!blocks) {
-      return (
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-3/4 mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-5/6 mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-4/6 mb-4"></div>
-          <div className="h-24 bg-gray-200 rounded w-full mb-4"></div>
-          <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-          <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-        </div>
-      );
-    }
-    
-    if (blocks.length === 0) {
-      return <div className="text-gray-500">コンテンツがありません</div>;
-    }
+const NotionContent: React.FC<NotionContentProps> = ({ blocks }) => {
+  if (!blocks || blocks.length === 0) {
+    return <div className="text-gray-500">コンテンツがありません</div>;
+  }
 
-    // ブロックの検証を行い、明らかに不正なブロックがないか確認
-    const validBlocks = blocks.filter(block => {
-      // IDやtypeプロパティがない場合は不正とみなす
-      if (!block || typeof block !== 'object') {
-        console.error('不正なブロック形式:', block);
-        return false;
+  // リストアイテムを正しくネストするための処理
+  let currentListType: string | null = null;
+  let currentListItems: React.ReactNode[] = [];
+  const renderedBlocks: React.ReactNode[] = [];
+
+  blocks.forEach((block, index) => {
+    // リストアイテムの処理
+    if (block.type === 'bulleted_list_item' || block.type === 'numbered_list_item') {
+      // 前のブロックと同じリストタイプかチェック
+      if (currentListType !== block.type) {
+        // 違うリストタイプの場合、前のリストを追加して新しいリストを開始
+        if (currentListItems.length > 0) {
+          renderedBlocks.push(
+            currentListType === 'bulleted_list_item' ? (
+              <ul key={`list-${renderedBlocks.length}`} className="list-disc pl-6 my-4">
+                {currentListItems}
+              </ul>
+            ) : (
+              <ol key={`list-${renderedBlocks.length}`} className="list-decimal pl-6 my-4">
+                {currentListItems}
+              </ol>
+            )
+          );
+          currentListItems = [];
+        }
+        currentListType = block.type;
       }
-      
-      // 最低限typeプロパティがあることを確認
-      if (!block.type) {
-        console.error('typeプロパティがないブロック:', block);
-        return false;
+
+      // 現在のリストに項目を追加
+      currentListItems.push(
+        <BlockRenderer key={block.id} block={block} headingId={`heading-${index}`} />
+      );
+    } else {
+      // リスト以外のブロックの場合
+      // 前のリストがあれば追加
+      if (currentListItems.length > 0) {
+        renderedBlocks.push(
+          currentListType === 'bulleted_list_item' ? (
+            <ul key={`list-${renderedBlocks.length}`} className="list-disc pl-6 my-4">
+              {currentListItems}
+            </ul>
+          ) : (
+            <ol key={`list-${renderedBlocks.length}`} className="list-decimal pl-6 my-4">
+              {currentListItems}
+            </ol>
+          )
+        );
+        currentListItems = [];
+        currentListType = null;
       }
-      
-      return true;
-    });
 
-    if (validBlocks.length === 0) {
-      return (
-        <div className="bg-yellow-50 p-4 rounded-md border border-yellow-300">
-          <h3 className="text-yellow-800 font-medium">表示可能なブロックが見つかりません</h3>
-          <p className="text-yellow-700 text-sm mt-1">
-            ブロックは正常に取得されましたが、表示可能な形式ではありません。
-          </p>
-          <details className="mt-3">
-            <summary className="text-xs cursor-pointer text-yellow-600">詳細を表示</summary>
-            <pre className="mt-2 p-2 bg-white text-xs overflow-auto rounded max-h-96 border border-yellow-200">
-              {JSON.stringify(blocks, null, 2)}
-            </pre>
-          </details>
-        </div>
+      // 通常のブロックを追加
+      renderedBlocks.push(
+        <BlockRenderer key={block.id} block={block} headingId={`heading-${index}`} />
       );
     }
+  });
 
-    try {
-      console.log(`${validBlocks.length}個のブロックをレンダリングします...`);
-  
-      return (
-        <div className="notion-content">
-          <BlockList blocks={validBlocks} />
-        </div>
-      );
-    } catch (error) {
-      console.error("ブロックのレンダリング中にエラーが発生しました:", error);
-      return (
-        <div className="bg-red-50 p-4 rounded-md border border-red-300">
-          <h3 className="text-red-800 font-medium">コンテンツの表示中にエラーが発生しました</h3>
-          <p className="text-red-700 text-sm mt-1">
-            {error instanceof Error ? error.message : '不明なエラー'}
-          </p>
-          <details className="mt-3">
-            <summary className="text-xs cursor-pointer text-red-600">ブロックデータを表示</summary>
-            <pre className="mt-2 p-2 bg-white text-xs overflow-auto rounded max-h-96 border border-red-200">
-              {JSON.stringify(blocks.slice(0, 10), null, 2)}
-              {blocks.length > 10 && "... (残りのブロックは省略されました)"}
-            </pre>
-          </details>
-        </div>
-      );
-    }
-  }, [blocks]);
+  // 最後のリストが残っていれば追加
+  if (currentListItems.length > 0) {
+    renderedBlocks.push(
+      currentListType === 'bulleted_list_item' ? (
+        <ul key={`list-${renderedBlocks.length}`} className="list-disc pl-6 my-4">
+          {currentListItems}
+        </ul>
+      ) : (
+        <ol key={`list-${renderedBlocks.length}`} className="list-decimal pl-6 my-4">
+          {currentListItems}
+        </ol>
+      )
+    );
+  }
 
-  return (
-    <ErrorBoundary>
-      {memoizedContent}
-    </ErrorBoundary>
-  );
+  return <div className="notion-content">{renderedBlocks}</div>;
 };
 
 export default React.memo(NotionContent); 

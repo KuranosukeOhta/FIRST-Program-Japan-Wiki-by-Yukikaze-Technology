@@ -11,6 +11,7 @@
   "dependencies": {
     "@notionhq/client": "^2.2.14",
     "@supabase/supabase-js": "^2.39.8",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "@vercel/analytics": "^1.2.2",
     "@vercel/speed-insights": "^1.0.10",
     "axios": "^1.8.4",
@@ -19,7 +20,8 @@
     "next": "^14.2.4",
     "node-fetch": "^2.7.0",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "react-syntax-highlighter": "^15.6.1"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.10",

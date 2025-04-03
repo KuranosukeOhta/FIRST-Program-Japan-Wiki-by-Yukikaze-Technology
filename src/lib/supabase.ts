@@ -24,27 +24,32 @@ export const createSupabaseClient = () => {
 };
 
 // サーバー側で使用するSupabaseクライアント（管理者権限）
-export const createSupabaseAdmin = () => {
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+export function createSupabaseAdmin() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!supabaseUrl || !supabaseServiceKey) {
-    throw new Error('Supabase管理者環境変数が設定されていません');
+    throw new Error('Supabase URLまたはサービスロールキーが設定されていません');
   }
 
+  // createClient関数でより詳細なオプションを指定
   return createClient(supabaseUrl, supabaseServiceKey, {
     auth: {
       persistSession: false,
-      autoRefreshToken: false
+      autoRefreshToken: false,
     },
     global: {
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': supabaseServiceKey
-      }
-    }
+      // タイムアウト値を増やす
+      fetch: (url, options) => {
+        return fetch(url, {
+          ...options,
+          // タイムアウトを30秒に設定
+          signal: AbortSignal.timeout(30000),
+        });
+      },
+    },
   });
-};
+}
 
 // シングルトンパターンでクライアント側のSupabaseインスタンスを提供
 let supabase: ReturnType<typeof createSupabaseClient> | null = null;

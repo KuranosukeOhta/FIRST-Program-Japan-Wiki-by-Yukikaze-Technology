@@ -1,19 +1,17 @@
 import { Client } from '@notionhq/client';
 import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
-import nodeFetch from 'node-fetch';
 
-export const createNotionClient = () => {
-  const notionApiKey = process.env.NOTION_API_KEY;
+export function createNotionClient() {
+  const apiKey = process.env.NOTION_API_KEY;
   
-  if (!notionApiKey) {
-    throw new Error('Notion API Key が設定されていません');
+  if (!apiKey) {
+    throw new Error('Notion API Keyが設定されていません');
   }
   
-  return new Client({ 
-    auth: notionApiKey,
-    fetch: nodeFetch as unknown as typeof fetch
+  return new Client({
+    auth: apiKey,
   });
-};
+}
 
 // ヘルパー関数
 export function extractTitle(page: any): string {

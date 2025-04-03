@@ -63,8 +63,26 @@ interface SyncParams {
 }
 
 // NotionのAPIからのレスポンスに対応する型
-type NotionPage = PageObjectResponse | PartialPageObjectResponse;
-type NotionBlock = BlockObjectResponse | PartialBlockObjectResponse;
+interface NotionPage {
+  id: string;
+  object: string;
+  properties: any;
+  created_time?: string;
+  last_edited_time?: string;
+  has_children?: boolean;
+  type?: string;
+  [key: string]: any;
+}
+
+interface NotionBlock {
+  id: string;
+  object: string;
+  type: string;
+  has_children: boolean;
+  created_time?: string;
+  last_edited_time?: string;
+  [key: string]: any;
+}
 
 export async function POST(request: Request) {
   // リクエストパラメータの取得

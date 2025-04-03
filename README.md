@@ -70,6 +70,33 @@ Supabaseには以下のテーブルがあります：
 Vercelのクロンジョブ機能を使って、Notionからのデータ同期を定期的に行います。
 `vercel.json`ファイルに設定されています。
 
+## Notion同期機能について
+
+このプロジェクトはNotionデータベースからコンテンツを取得し、Supabaseに保存する同期機能を備えています。
+
+### 同期の仕組み
+
+- `/api/sync-notion` エンドポイントにPOSTリクエストを送信することで同期を実行
+- Vercel Cronを利用して6時間ごとに自動同期 (vercel.json に設定)
+- 公開ステータスのページのみを同期する機能あり
+- ページネーション機能によるバッチ処理対応
+
+### 必要な環境変数
+
+```
+NOTION_API_KEY=your_notion_api_key
+NOTION_DATABASE_ID=your_notion_database_id
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+SYNC_API_SECRET=your_sync_api_secret_key
+```
+
+### 開発環境での注意点
+
+- Node.js 18以上を使用してください (fetch APIのネイティブサポートのため)
+- 開発環境では `fetch failed` エラーが発生する場合がありますが、Vercel環境では正常に動作します
+- 大量のデータ同期はタイムアウトの可能性があるため、ページネーションパラメータを使用してください
+
 ## ライセンス
 
 MITライセンス

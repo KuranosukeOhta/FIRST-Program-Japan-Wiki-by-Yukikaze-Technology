@@ -1,59 +1,133 @@
-import { NextResponse } from 'next/server';
-import { extractTitle, extractCategory } from '@/lib/notion';
-import { createSupabaseAdmin } from '@/lib/supabase';
-import { 
-  PageObjectResponse, 
-  PartialPageObjectResponse,
-  BlockObjectResponse,
-  PartialBlockObjectResponse
-} from '@notionhq/client/build/src/api-endpoints';
-import axios from 'axios';
+const axios = require('axios');
+const dotenv = require('dotenv');
+const path = require('path');
+const { createClient } = require('@supabase/supabase-js');
+
+// .envファイルを読み込む
+dotenv.config({ path: path.resolve(process.cwd(), '.env.local') });
+// バックアップとして.envも読み込む
+dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+
+// 環境変数を正規化（Next.jsとの互換性のため）
+const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const NOTION_API_KEY = process.env.NOTION_API_KEY || process.env.NOTION_AUTH_TOKEN;
+const NOTION_DATABASE_ID = process.env.NOTION_DATABASE_ID;
+
+// 環境変数を表示
+console.log('環境変数:');
+console.log('NOTION_API_KEY:', NOTION_API_KEY ? '設定されています' : '設定されていません');
+console.log('NOTION_DATABASE_ID:', NOTION_DATABASE_ID ? '設定されています' : '設定されていません');
+console.log('SUPABASE_URL:', SUPABASE_URL ? '設定されています' : '設定されていません');
+console.log('SUPABASE_SERVICE_ROLE_KEY:', SUPABASE_SERVICE_ROLE_KEY ? '設定されています' : '設定されていません');
+
+// APIキーが設定されていなければ終了
+if (!NOTION_API_KEY) {
+  console.error('NOTION_API_KEYが設定されていません。');
+  process.exit(1);
+}
+
+// データベースIDが設定されていなければ終了
+if (!NOTION_DATABASE_ID) {
+  console.error('NOTION_DATABASE_IDが設定されていません。');
+  process.exit(1);
+}
+
+// Supabase認証情報が設定されていなければ終了
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('Supabaseの認証情報が設定されていません。');
+  process.exit(1);
+}
 
 // axiosによるNotion APIアクセス関数
-async function fetchDatabase(databaseId: string) {
+async function fetchDatabase(databaseId) {
   return axios({
     method: 'get',
     url: `https://api.notion.com/v1/databases/${databaseId}`,
     headers: {
-      'Authorization': `Bearer ${process.env.NOTION_API_KEY}`,
+      'Authorization': `Bearer ${NOTION_API_KEY}`,
       'Notion-Version': '2022-06-28'
     }
   });
 }
 
-async function queryDatabase(databaseId: string) {
+async function queryDatabase(databaseId) {
   return axios({
     method: 'post',
     url: `https://api.notion.com/v1/databases/${databaseId}/query`,
     headers: {
-      'Authorization': `Bearer ${process.env.NOTION_API_KEY}`,
+      'Authorization': `Bearer ${NOTION_API_KEY}`,
       'Notion-Version': '2022-06-28',
       'Content-Type': 'application/json'
     }
   });
 }
 
-async function fetchBlockChildren(blockId: string) {
+async function fetchBlockChildren(blockId) {
   return axios({
     method: 'get',
     url: `https://api.notion.com/v1/blocks/${blockId}/children`,
     headers: {
-      'Authorization': `Bearer ${process.env.NOTION_API_KEY}`,
+      'Authorization': `Bearer ${NOTION_API_KEY}`,
       'Notion-Version': '2022-06-28'
     }
   });
 }
 
-export async function POST(request: Request) {
-  // 認証チェック
-  const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.SYNC_API_SECRET}`) {
-    return NextResponse.json({ error: '認証エラー' }, { status: 401 });
+// タイトル抽出ヘルパー関数
+function extractTitle(page) {
+  try {
+    // タイトルプロパティを抽出
+    if (!page.properties) {
+      return '無題';
+    }
+    
+    // プロパティからタイトルを探す
+    const titleProp = Object.values(page.properties).find(
+      (prop) => prop.type === 'title'
+    );
+    
+    if (titleProp?.title?.[0]?.plain_text) {
+      return titleProp.title[0].plain_text;
+    }
+    
+    return '無題';
+  } catch (error) {
+    console.error('タイトル抽出エラー:', error);
+    return '無題';
   }
-  
+}
+
+// カテゴリー抽出ヘルパー関数
+function extractCategory(page) {
+  try {
+    // プロパティがない場合は空文字を返す
+    if (!page.properties) {
+      return '';
+    }
+    
+    // カテゴリープロパティを抽出
+    const categoryProp = page.properties.Category || page.properties.カテゴリー;
+    
+    if (categoryProp?.select?.name) {
+      return categoryProp.select.name;
+    }
+    
+    return '';
+  } catch (error) {
+    console.error('カテゴリ抽出エラー:', error);
+    return '';
+  }
+}
+
+// メイン同期処理
+async function syncNotionToSupabase() {
   try {
     // Supabaseクライアントを初期化
-    const supabase = createSupabaseAdmin();
+    const supabase = createClient(
+      SUPABASE_URL,
+      SUPABASE_SERVICE_ROLE_KEY
+    );
     
     // 同期ステータスレコードを作成
     const { data: syncStatus, error: syncError } = await supabase
@@ -74,15 +148,14 @@ export async function POST(request: Request) {
     const syncId = syncStatus?.id;
     
     // Notionデータベースからページ一覧を取得
-    const databaseId = process.env.NOTION_DATABASE_ID as string;
-    console.log(`Notionデータベース(${databaseId})からページ一覧を取得中...`);
+    console.log(`Notionデータベース(${NOTION_DATABASE_ID})からページ一覧を取得中...`);
     
-    const pagesResponse = await queryDatabase(databaseId);
+    const pagesResponse = await queryDatabase(NOTION_DATABASE_ID);
     const pages = pagesResponse.data.results;
     
     let pagesCount = 0;
     let blocksCount = 0;
-    const errors: any[] = [];
+    const errors = [];
     
     console.log(`${pages.length}ページを処理します...`);
     
@@ -99,17 +172,7 @@ export async function POST(request: Request) {
         }
         
         // ページデータをSupabaseに保存
-        const pageData: {
-          id: string;
-          title: string;
-          category: string;
-          last_synced_at: string;
-          raw_data: any;
-          properties: any;
-          created_time?: string;
-          last_edited_time?: string;
-          [key: string]: any;
-        } = {
+        const pageData = {
           id: page.id,
           title: extractTitle(page),
           category: extractCategory(page),
@@ -159,18 +222,7 @@ export async function POST(request: Request) {
           const block = blocks[i];
           
           // ブロックデータをSupabaseに保存
-          const blockData: {
-            id: string;
-            page_id: string;
-            type: string;
-            content: any;
-            has_children: boolean;
-            sort_order: number;
-            last_synced_at: string;
-            created_time?: string;
-            last_edited_time?: string;
-            [key: string]: any;
-          } = {
+          const blockData = {
             id: block.id,
             page_id: page.id,
             type: block.type || 'unknown',
@@ -203,7 +255,7 @@ export async function POST(request: Request) {
         }
         
         console.log(`ページ完了: ${page.id} (${blocks.length}ブロック)`);
-      } catch (pageError: any) {
+      } catch (pageError) {
         console.error(`ページ処理エラー(${page.id}):`, pageError);
         errors.push({ id: page.id, error: pageError.message, type: 'page_process' });
       }
@@ -222,19 +274,37 @@ export async function POST(request: Request) {
         .eq('id', syncId);
     }
     
-    return NextResponse.json({
+    console.log('同期完了:');
+    console.log(`- ページ数: ${pagesCount}`);
+    console.log(`- ブロック数: ${blocksCount}`);
+    console.log(`- エラー数: ${errors.length}`);
+    
+    return {
       success: true,
       pagesCount,
       blocksCount,
       errors: errors.length > 0 ? errors : null
-    });
-  } catch (error: any) {
+    };
+  } catch (error) {
     console.error('同期エラー:', error);
-    
-    return NextResponse.json({
-      error: 'データ同期中にエラーが発生しました',
-      details: error.message,
-      stack: error.stack
-    }, { status: 500 });
+    return {
+      success: false,
+      error: error.message
+    };
   }
-} 
+}
+
+// スクリプト実行
+syncNotionToSupabase()
+  .then(result => {
+    if (result.success) {
+      console.log('同期が成功しました！');
+    } else {
+      console.error('同期に失敗しました:', result.error);
+      process.exit(1);
+    }
+  })
+  .catch(error => {
+    console.error('予期せぬエラーが発生しました:', error);
+    process.exit(1);
+  }); 

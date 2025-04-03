@@ -1,5 +1,6 @@
 import { Client } from '@notionhq/client';
 import { PageObjectResponse } from '@notionhq/client/build/src/api-endpoints';
+import nodeFetch from 'node-fetch';
 
 export const createNotionClient = () => {
   const notionApiKey = process.env.NOTION_API_KEY;
@@ -9,7 +10,8 @@ export const createNotionClient = () => {
   }
   
   return new Client({ 
-    auth: notionApiKey 
+    auth: notionApiKey,
+    fetch: nodeFetch as unknown as typeof fetch
   });
 };
 

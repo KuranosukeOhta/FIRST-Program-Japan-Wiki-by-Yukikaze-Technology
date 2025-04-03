@@ -48,9 +48,30 @@ function generateTableOfContents(blocks: any[]) {
   
   return headings.map((heading, index) => {
     const level = parseInt(heading.type.split('_')[1]);
-    const content = heading.content ? JSON.parse(heading.content) : {};
+    
+    // コンテンツを適切に解析
+    let content;
+    if (heading.content) {
+      try {
+        // 既にオブジェクトならそのまま使用
+        if (typeof heading.content === 'object') {
+          content = heading.content;
+        } else if (typeof heading.content === 'string') {
+          // 文字列ならJSONとしてパース
+          content = JSON.parse(heading.content);
+        } else {
+          content = {};
+        }
+      } catch (error) {
+        console.error('見出しコンテンツの解析に失敗しました:', error);
+        content = {};
+      }
+    } else {
+      content = {};
+    }
+    
     const richText = content[heading.type]?.rich_text || [];
-    const text = richText.map((rt: any) => rt.plain_text).join('');
+    const text = richText.map((rt: any) => rt.plain_text || '').join('');
     return { id: `heading-${index}`, text: text || `見出し ${index + 1}`, level };
   });
 }

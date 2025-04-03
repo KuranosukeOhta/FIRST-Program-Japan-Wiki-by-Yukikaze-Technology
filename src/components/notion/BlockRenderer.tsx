@@ -104,9 +104,30 @@ const renderRichText = (richTextArray: any[]) => {
   });
 };
 
+// コンテンツをパースする共通関数
+const parseContent = (content: any, defaultValue: any) => {
+  if (!content) return defaultValue;
+  
+  try {
+    // すでにオブジェクトなら変換せずそのまま返す
+    if (typeof content === 'object') return content;
+    
+    // 文字列ならJSONとしてパース
+    if (typeof content === 'string') {
+      return JSON.parse(content);
+    }
+    
+    // 上記以外の場合はデフォルト値を返す
+    return defaultValue;
+  } catch (error) {
+    console.error('コンテンツの解析に失敗しました:', error);
+    return defaultValue;
+  }
+};
+
 // 各ブロックタイプのコンポーネント
 const ParagraphBlock = ({ block }: { block: any }) => {
-  const content = block.content ? JSON.parse(block.content) : { paragraph: { rich_text: [] } };
+  const content = parseContent(block.content, { paragraph: { rich_text: [] } });
   const richText = content.paragraph?.rich_text || [];
   
   return (
@@ -117,7 +138,7 @@ const ParagraphBlock = ({ block }: { block: any }) => {
 };
 
 const HeadingBlock = ({ level, block, headingId }: { level: number; block: any; headingId?: string }) => {
-  const content = block.content ? JSON.parse(block.content) : { [`heading_${level}`]: { rich_text: [] } };
+  const content = parseContent(block.content, { [`heading_${level}`]: { rich_text: [] } });
   const richText = content[`heading_${level}`]?.rich_text || [];
   
   const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
@@ -140,7 +161,7 @@ const HeadingBlock = ({ level, block, headingId }: { level: number; block: any; 
 };
 
 const BulletedListItem = ({ block }: { block: any }) => {
-  const content = block.content ? JSON.parse(block.content) : { bulleted_list_item: { rich_text: [] } };
+  const content = parseContent(block.content, { bulleted_list_item: { rich_text: [] } });
   const richText = content.bulleted_list_item?.rich_text || [];
   
   return (
@@ -158,7 +179,7 @@ const BulletedListItem = ({ block }: { block: any }) => {
 };
 
 const NumberedListItem = ({ block }: { block: any }) => {
-  const content = block.content ? JSON.parse(block.content) : { numbered_list_item: { rich_text: [] } };
+  const content = parseContent(block.content, { numbered_list_item: { rich_text: [] } });
   const richText = content.numbered_list_item?.rich_text || [];
   
   return (
@@ -176,7 +197,7 @@ const NumberedListItem = ({ block }: { block: any }) => {
 };
 
 const TodoBlock = ({ block }: { block: any }) => {
-  const content = block.content ? JSON.parse(block.content) : { to_do: { rich_text: [], checked: false } };
+  const content = parseContent(block.content, { to_do: { rich_text: [], checked: false } });
   const richText = content.to_do?.rich_text || [];
   const checked = content.to_do?.checked || false;
   
@@ -197,7 +218,7 @@ const TodoBlock = ({ block }: { block: any }) => {
 
 const ToggleBlock = ({ block }: { block: any }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const content = block.content ? JSON.parse(block.content) : { toggle: { rich_text: [] } };
+  const content = parseContent(block.content, { toggle: { rich_text: [] } });
   const richText = content.toggle?.rich_text || [];
   
   return (
@@ -235,9 +256,9 @@ const ToggleBlock = ({ block }: { block: any }) => {
 };
 
 const CodeBlock = ({ block }: { block: any }) => {
-  const codeContent = block.content ? JSON.parse(block.content) : { code: { language: 'text', rich_text: [] } };
-  const language = codeContent.code?.language?.toLowerCase() || 'text';
-  const richText = codeContent.code?.rich_text || [];
+  const content = parseContent(block.content, { code: { language: 'text', rich_text: [] } });
+  const language = content.code?.language?.toLowerCase() || 'text';
+  const richText = content.code?.rich_text || [];
   const codeText = richText.map((rt: any) => rt.plain_text).join('');
   
   // 型安全な言語マッピング
@@ -262,9 +283,9 @@ const CodeBlock = ({ block }: { block: any }) => {
 
   return (
     <div className="my-6 rounded-lg overflow-hidden">
-      {codeContent.code?.caption && codeContent.code.caption.length > 0 && (
+      {content.code?.caption && content.code.caption.length > 0 && (
         <div className="text-sm italic text-gray-500 mb-1">
-          {renderRichText(codeContent.code.caption)}
+          {renderRichText(content.code.caption)}
         </div>
       )}
       <div className="relative">
@@ -290,7 +311,7 @@ const CodeBlock = ({ block }: { block: any }) => {
 };
 
 const ImageBlock = ({ block }: { block: any }) => {
-  const content = block.content ? JSON.parse(block.content) : { image: { type: 'external', external: { url: '' } } };
+  const content = parseContent(block.content, { image: { type: 'external', external: { url: '' } } });
   const image = content.image || {};
   const url = (image.type === 'external' ? image.external?.url : image.file?.url) || '';
   const caption = image.caption || [];
@@ -325,7 +346,7 @@ const ImageBlock = ({ block }: { block: any }) => {
 };
 
 const CalloutBlock = ({ block }: { block: any }) => {
-  const content = block.content ? JSON.parse(block.content) : { callout: { rich_text: [], icon: { type: 'emoji', emoji: 'ℹ️' } } };
+  const content = parseContent(block.content, { callout: { rich_text: [], icon: { type: 'emoji', emoji: 'ℹ️' } } });
   const callout = content.callout || {};
   const richText = callout.rich_text || [];
   const icon = callout.icon?.emoji || 'ℹ️';
@@ -339,7 +360,7 @@ const CalloutBlock = ({ block }: { block: any }) => {
 };
 
 const QuoteBlock = ({ block }: { block: any }) => {
-  const content = block.content ? JSON.parse(block.content) : { quote: { rich_text: [] } };
+  const content = parseContent(block.content, { quote: { rich_text: [] } });
   const richText = content.quote?.rich_text || [];
   
   return (

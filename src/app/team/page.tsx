@@ -97,7 +97,7 @@ export default async function TeamPage() {
             href="/wiki" 
             className="inline-block text-blue-600 hover:text-blue-800 font-medium hover:underline"
           >
-            ウィキページ一覧に戻る
+            ページ一覧に戻る
           </Link>
         </div>
       </div>

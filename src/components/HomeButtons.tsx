@@ -12,7 +12,7 @@ export default function HomeButtons() {
         className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg text-lg font-medium flex items-center justify-center"
       >
         <BookOpen className="mr-2 h-5 w-5" />
-        ウィキを見る
+        ページを見る
       </Link>
       <Link 
         href="/about"

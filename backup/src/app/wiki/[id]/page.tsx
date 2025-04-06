@@ -155,7 +155,7 @@ export default async function WikiDetailPage({ params }: { params: { id: string 
             className="inline-flex items-center text-blue-600 hover:text-blue-800 mb-4"
           >
             <ArrowLeft className="mr-2 h-4 w-4" />
-            ウィキ一覧に戻る
+            ページ一覧に戻る
           </Link>
           
           <h1 className="text-3xl sm:text-4xl font-bold text-gray-800 mb-4">{page.title}</h1>

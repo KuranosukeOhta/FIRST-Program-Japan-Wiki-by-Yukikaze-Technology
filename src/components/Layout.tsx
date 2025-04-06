@@ -294,7 +294,7 @@ function Layout({ children }: LayoutProps) {
                 className="flex items-center px-3 py-2 text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 rounded-md"
               >
                 <BookOpen className="h-5 w-5 mr-3" />
-                ウィキページ一覧
+                ページ一覧
               </Link>
               
               {/* カテゴリーリスト */}

@@ -180,7 +180,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
           <SortMenu />
           
           {/* 記事著者リスト - 実データから表示 */}
-          {page.authors && Array.isArray(page.authors) && page.authors.length > 0 ? (
+          {page.authors && Array.isArray(page.authors) && page.authors.length > 0 ? ( // 文法の説明：page.authorsが配列であり、かつ要素数が0より大きい場合
             // 実際の著者データがある場合
             page.authors.filter(author => typeof author === 'string').map((author, index) => (
               <div key={index} className="bg-gray-300 p-3 mb-4 rounded flex">
@@ -253,7 +253,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
             {(!blocks || blocks.length === 0) && (
               <div className="text-center p-8 text-gray-500">
                 <p className="text-lg font-medium">コンテンツがありません</p>
-                <p className="mt-2">この記事にはまだ内容が追加されていません。</p>
+                <p className="mt-2">この記事にはまだ内容が追加されていません。</p> {/* mt-2とはmargin-topの2倍の意味、margin-topは上からの余白を表す */}
               </div>
             )}
           </div>

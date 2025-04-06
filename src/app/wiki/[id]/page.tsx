@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState, useEffect } from "react";
 import { Metadata } from "next";
 import NotionContent from "@/components/NotionContent";
 import { getPageDetail, getCategories, getLatestPages } from "@/lib/data";
@@ -11,7 +13,8 @@ import TableOfContents from "@/components/TableOfContents";
 // 相対パスでインポート
 import ArticleSearch from "../../../components/ArticleSearch";
 import SortMenu from "../../../components/SortMenu";
-import RelatedArticlesSection from "../../../components/RelatedArticlesSection";
+// 名前の衝突を解消するため、外部コンポーネントのインポートを削除
+// import RelatedArticlesSection from "../../../components/RelatedArticlesSection";
 
 interface PageProps {
   params: {
@@ -107,6 +110,109 @@ function generateTableOfContents(blocks: any[]) {
   });
 }
 
+// 関連ページのインターフェイス（コンポーネントの型定義に合わせる）
+interface LocalRelatedPage {
+  id: string;
+  title: string;
+  category: string;
+  authors?: string[];
+  last_edited_time: string;
+  created_time: string;
+}
+
+// 関連ページセクション用のprops
+interface RelatedArticlesSectionProps {
+  relatedPages: LocalRelatedPage[] | undefined;
+}
+
+// 名前を変更して衝突を回避
+export function InlineRelatedArticlesSection({ relatedPages }: RelatedArticlesSectionProps) {
+  const [sortedPages, setSortedPages] = useState<LocalRelatedPage[]>([]);
+  const [currentSort, setCurrentSort] = useState("lastEdited");
+
+  // 初期データとソート順が変わったときに再ソート
+  useEffect(() => {
+    if (!relatedPages || relatedPages.length === 0) {
+      setSortedPages([]);
+      return;
+    }
+    
+    // ソート処理
+    const newSortedPages = [...relatedPages];
+    switch (currentSort) {
+      case "title":
+        newSortedPages.sort((a, b) => a.title.localeCompare(b.title, 'ja'));
+        break;
+      case "created":
+        newSortedPages.sort((a, b) => 
+          new Date(b.created_time).getTime() - new Date(a.created_time).getTime()
+        );
+        break;
+      case "lastEdited":
+      default:
+        newSortedPages.sort((a, b) => 
+          new Date(b.last_edited_time).getTime() - new Date(a.last_edited_time).getTime()
+        );
+        break;
+    }
+    
+    setSortedPages(newSortedPages);
+  }, [relatedPages, currentSort]);
+
+  // 並べ替え変更ハンドラー
+  const handleSortChange = (sortValue: string) => {
+    setCurrentSort(sortValue);
+  };
+
+  return (
+    <>
+      {/* 関連ページの並び替えメニュー */}
+      {relatedPages && relatedPages.length > 0 && (
+        <SortMenu 
+          mode="related" 
+          onSortChange={handleSortChange} 
+          title="関連ページの並び替え"
+          initialSort={currentSort} 
+        />
+      )}
+      
+      {/* 関連ページ一覧 */}
+      <div className="bg-blue-50 p-3 mb-4 rounded shadow-sm">
+        <h3 className="text-center text-gray-700 font-medium mb-3">カテゴリの他のページ</h3>
+        
+        {sortedPages && sortedPages.length > 0 ? (
+          <div className="space-y-3">
+            {sortedPages.map((relatedPage) => (
+              <Link key={relatedPage.id} href={`/wiki/${relatedPage.id}`}>
+                <div className="bg-white p-3 rounded hover:bg-blue-50 transition-colors">
+                  <p className="text-sm font-medium text-gray-800 mb-1 line-clamp-2">{relatedPage.title}</p>
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                      {relatedPage.category || '未分類'}
+                    </span>
+                    {Array.isArray(relatedPage.authors) && relatedPage.authors.length > 0 && (
+                      <span className="text-xs text-gray-500">
+                        {relatedPage.authors[0]}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="bg-white p-3 rounded text-center text-gray-500 text-sm">
+            <p>他のページがありません</p>
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// サーバーコンポーネントに戻る
+"use server";
+
 export default async function WikiDetailPage({ params }: PageProps) {
   const pageData = await fetchPageData(params.id);
   const categories = await getCategories();
@@ -115,6 +221,14 @@ export default async function WikiDetailPage({ params }: PageProps) {
   // デバッグ: 取得したページデータのauthorsフィールドを確認
   if (pageData && pageData.page) {
     console.log('Page data authors:', pageData.page.authors);
+  }
+  
+  // relatedPagesの構造をログ出力して確認
+  if (pageData && pageData.relatedPages) {
+    console.log('Related pages structure:', 
+      pageData.relatedPages.length > 0 ? 
+      JSON.stringify(pageData.relatedPages[0], null, 2) : 
+      'No related pages');
   }
   
   if (!pageData) {
@@ -134,8 +248,15 @@ export default async function WikiDetailPage({ params }: PageProps) {
   const { page, blocks } = pageData;
   const toc = generateTableOfContents(blocks || []);
   
-  // 関連ページの取得を無効化
-  // const relatedPages = await getRelatedPages(params.id, pageData.category);
+  // 関連ページのデータを適切な形式に変換（型エラーを避けるため一時的にany型を使用）
+  const formattedRelatedPages = pageData.relatedPages?.map((page: any) => ({
+    id: page.id,
+    title: page.title,
+    category: page.category || '未分類',
+    authors: page.authors,
+    last_edited_time: page.last_edited_time || '',
+    created_time: page.created_time || ''
+  })) || [];
   
   return (
     <div className="bg-white">
@@ -195,28 +316,22 @@ export default async function WikiDetailPage({ params }: PageProps) {
           {/* ページ検索バー */}
           <ArticleSearch />
           
-          {/* グローバル並び替えメニュー */}
-          <SortMenu mode="global" />
-          
           {/* 関連ページ一覧 - クライアントコンポーネントを使用 */}
-          <RelatedArticlesSection relatedPages={pageData.relatedPages as any} />
+          <InlineRelatedArticlesSection relatedPages={formattedRelatedPages} />
           
-          {/* 最新のページ一覧 */}
-          <div className="bg-blue-50 p-3 mb-4 rounded shadow-sm">
-            <h3 className="text-center text-gray-700 font-medium mb-3">最近更新されたページ</h3>
+          {/* 最新の記事一覧 */}
+          <div className="bg-blue-50 p-3 rounded shadow-sm mt-4">
+            <h3 className="text-center text-gray-700 font-medium mb-3">最近更新された記事</h3>
             
             {latestPages && latestPages.length > 0 ? (
               <div className="space-y-3">
-                {latestPages.map((latestPage) => (
+                {latestPages.map((latestPage: any) => (
                   <Link key={latestPage.id} href={`/wiki/${latestPage.id}`}>
                     <div className="bg-white p-3 rounded hover:bg-blue-50 transition-colors">
                       <p className="text-sm font-medium text-gray-800 mb-1 line-clamp-2">{latestPage.title}</p>
                       <div className="flex justify-between items-center">
                         <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
                           {latestPage.category || '未分類'}
-                        </span>
-                        <span className="text-xs text-gray-500">
-                          {new Date(latestPage.last_edited_time).toLocaleDateString('ja-JP')}
                         </span>
                       </div>
                     </div>
@@ -225,7 +340,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
               </div>
             ) : (
               <div className="bg-white p-3 rounded text-center text-gray-500 text-sm">
-                <p>最新のページがありません</p>
+                <p>記事情報を取得できませんでした</p>
               </div>
             )}
           </div>

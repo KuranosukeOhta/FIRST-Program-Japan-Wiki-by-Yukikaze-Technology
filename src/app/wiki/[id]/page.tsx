@@ -8,6 +8,8 @@ import { getPageDetail, getCategories } from "@/lib/data";
 import Link from "next/link";
 import { Search, Menu } from "lucide-react";
 import TableOfContents from "@/components/TableOfContents";
+import ArticleSearch from "@/components/ArticleSearch";
+import SortMenu from "@/components/SortMenu";
 
 interface PageProps {
   params: {
@@ -172,23 +174,10 @@ export default async function WikiDetailPage({ params }: PageProps) {
         {/* 左サイドバー - 記事検索と記事著者リスト */}
         <div className="md:col-span-2">
           {/* 記事検索バー */}
-          <div className="bg-gray-300 p-4 mb-4 rounded">
-            <h3 className="text-center text-gray-700 font-medium mb-2">記事検索バー</h3>
-            <div className="relative">
-              <input 
-                type="text" 
-                className="w-full bg-white rounded px-3 py-2 pr-8 text-sm"
-                placeholder="記事を検索..."
-              />
-              <Search className="absolute right-2 top-2 h-4 w-4 text-gray-400" />
-            </div>
-          </div>
+          <ArticleSearch />
           
           {/* 並び替えメニュー */}
-          <div className="bg-gray-300 p-3 mb-4 rounded flex items-center justify-between">
-            <span className="text-sm text-gray-700">並び替えメニュー</span>
-            <Menu className="h-4 w-4 text-gray-700" />
-          </div>
+          <SortMenu />
           
           {/* 記事著者リスト - 実データから表示 */}
           {page.authors && Array.isArray(page.authors) && page.authors.length > 0 ? (
@@ -287,12 +276,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
               </h3>
             </div>
             <div className="text-center">
-              <p className="text-gray-600 text-sm">記事の執筆者</p>
-              <p className="text-xs text-gray-500 mt-1">
-                最終更新: {new Date(page.last_edited_time).toLocaleString('ja-JP', { 
-                  year: 'numeric', month: '2-digit', day: '2-digit'
-                })}
-              </p>
+              <p className="text-gray-600 text-sm">記事の執筆者プロフィール(未実装)</p>
             </div>
           </div>
           

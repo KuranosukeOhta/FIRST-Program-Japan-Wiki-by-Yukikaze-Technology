@@ -163,6 +163,7 @@ export async function getWikiPages(params: {
   search?: string; 
   page?: number;
   limit?: number;
+  sort?: string;
 }) {
   const maxRetries = 3;
   let retryCount = 0;
@@ -170,12 +171,12 @@ export async function getWikiPages(params: {
   while (retryCount < maxRetries) {
     try {
       const supabase = createSupabaseClient();
-      const { category, search, page = 1, limit = 10 } = params;
+      const { category, search, page = 1, limit = 10, sort = 'lastEdited' } = params;
       
       // ベースクエリ
       let query = supabase
         .from('notion_pages')
-        .select('id,title,category,created_time', { count: 'exact' });
+        .select('id,title,category,created_time,last_edited_time,authors', { count: 'exact' });
       
       // フィルタリング
       if (category) {
@@ -186,13 +187,26 @@ export async function getWikiPages(params: {
         query = query.ilike('title', `%${search}%`);
       }
       
+      // ソート順の設定
+      switch (sort) {
+        case 'title':
+          query = query.order('title', { ascending: true });
+          break;
+        case 'created':
+          query = query.order('created_time', { ascending: false });
+          break;
+        case 'lastEdited':
+        default:
+          query = query.order('last_edited_time', { ascending: false });
+          break;
+      }
+      
       // ページネーション
       const from = (page - 1) * limit;
       const to = from + limit - 1;
       
       // データ取得
       const { data: pages, count, error } = await query
-        .order('created_time', { ascending: false })
         .range(from, to);
       
       if (error) {

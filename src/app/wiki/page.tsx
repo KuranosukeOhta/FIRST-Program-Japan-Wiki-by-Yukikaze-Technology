@@ -24,21 +24,22 @@ async function fetchWikiPages(searchParams: { [key: string]: string | string[] |
   const category = searchParams.category as string || '';
   const search = searchParams.search as string || '';
   const page = Number(searchParams.page) || 1;
+  const sort = searchParams.sort as string || 'lastEdited'; // デフォルトは最終更新順
   
   // 開発環境のみダミーデータを返す
   if (process.env.NODE_ENV === 'development') {
     // カテゴリでフィルタリング
     let filteredPages = [
-      { id: '1', title: 'FRC 2024 ルール概要', category: 'FRC', last_edited_time: '2024-01-15T12:00:00Z', authors: ['山田太郎'] },
-      { id: '2', title: 'FTC パーツリスト', category: 'FTC', last_edited_time: '2024-01-14T15:30:00Z', authors: ['鈴木花子', '田中一郎'] },
-      { id: '3', title: 'プログラミング入門', category: 'チュートリアル', last_edited_time: '2024-01-13T09:45:00Z', authors: ['佐藤次郎'] },
-      { id: '4', title: '日本大会レポート', category: 'イベント', last_edited_time: '2024-01-12T18:20:00Z', authors: ['山本五郎'] },
-      { id: '5', title: 'FLL チャレンジ攻略法', category: 'FLL', last_edited_time: '2024-01-11T14:10:00Z', authors: ['伊藤六郎'] },
-      { id: '6', title: 'ロボットデザイン基礎', category: 'チュートリアル', last_edited_time: '2024-01-10T10:10:00Z', authors: ['高橋七郎'] },
-      { id: '7', title: 'センサー活用方法', category: 'FTC', last_edited_time: '2024-01-09T11:30:00Z', authors: ['渡辺八郎'] },
-      { id: '8', title: 'FRC 競技戦略', category: 'FRC', last_edited_time: '2024-01-08T16:40:00Z', authors: ['斎藤九郎'] },
-      { id: '9', title: 'チーム運営ガイド', category: 'その他', last_edited_time: '2024-01-07T13:20:00Z', authors: ['小林十郎'] },
-      { id: '10', title: 'スポンサー獲得術', category: 'その他', last_edited_time: '2024-01-06T09:10:00Z', authors: ['加藤十一郎', '松本十二郎'] },
+      { id: '1', title: 'FRC 2024 ルール概要', category: 'FRC', last_edited_time: '2024-01-15T12:00:00Z', authors: ['山田太郎'], created_time: '2024-01-10T12:00:00Z' },
+      { id: '2', title: 'FTC パーツリスト', category: 'FTC', last_edited_time: '2024-01-14T15:30:00Z', authors: ['鈴木花子', '田中一郎'], created_time: '2024-01-05T15:30:00Z' },
+      { id: '3', title: 'プログラミング入門', category: 'チュートリアル', last_edited_time: '2024-01-13T09:45:00Z', authors: ['佐藤次郎'], created_time: '2024-01-01T09:45:00Z' },
+      { id: '4', title: '日本大会レポート', category: 'イベント', last_edited_time: '2024-01-12T18:20:00Z', authors: ['山本五郎'], created_time: '2024-01-06T18:20:00Z' },
+      { id: '5', title: 'FLL チャレンジ攻略法', category: 'FLL', last_edited_time: '2024-01-11T14:10:00Z', authors: ['伊藤六郎'], created_time: '2024-01-02T14:10:00Z' },
+      { id: '6', title: 'ロボットデザイン基礎', category: 'チュートリアル', last_edited_time: '2024-01-10T10:10:00Z', authors: ['高橋七郎'], created_time: '2023-12-20T10:10:00Z' },
+      { id: '7', title: 'センサー活用方法', category: 'FTC', last_edited_time: '2024-01-09T11:30:00Z', authors: ['渡辺八郎'], created_time: '2023-12-15T11:30:00Z' },
+      { id: '8', title: 'FRC 競技戦略', category: 'FRC', last_edited_time: '2024-01-08T16:40:00Z', authors: ['斎藤九郎'], created_time: '2023-12-10T16:40:00Z' },
+      { id: '9', title: 'チーム運営ガイド', category: 'その他', last_edited_time: '2024-01-07T13:20:00Z', authors: ['小林十郎'], created_time: '2023-12-05T13:20:00Z' },
+      { id: '10', title: 'スポンサー獲得術', category: 'その他', last_edited_time: '2024-01-06T09:10:00Z', authors: ['加藤十一郎', '松本十二郎'], created_time: '2023-12-01T09:10:00Z' },
     ];
     
     if (category) {
@@ -50,6 +51,24 @@ async function fetchWikiPages(searchParams: { [key: string]: string | string[] |
       filteredPages = filteredPages.filter(page => 
         page.title.toLowerCase().includes(searchLower)
       );
+    }
+    
+    // ソート処理
+    switch (sort) {
+      case 'title':
+        filteredPages.sort((a, b) => a.title.localeCompare(b.title, 'ja'));
+        break;
+      case 'created':
+        filteredPages.sort((a, b) => 
+          new Date(b.created_time).getTime() - new Date(a.created_time).getTime()
+        );
+        break;
+      case 'lastEdited':
+      default:
+        filteredPages.sort((a, b) => 
+          new Date(b.last_edited_time).getTime() - new Date(a.last_edited_time).getTime()
+        );
+        break;
     }
     
     const categories: string[] = ['FRC', 'FTC', 'FLL', 'チュートリアル', 'イベント', 'その他'];
@@ -66,12 +85,15 @@ async function fetchWikiPages(searchParams: { [key: string]: string | string[] |
   
   try {
     // 本番環境では直接Supabaseからデータを取得
-    return await getWikiPages({
+    const result = await getWikiPages({
       category,
       search,
       page,
-      limit: 10
+      limit: 10,
+      sort // ソートパラメータを追加
     });
+    
+    return result;
   } catch (error) {
     console.error('ページ一覧取得エラー:', error);
     // エラー時もダミーデータを返す
@@ -99,12 +121,14 @@ export default async function WikiPage({
   const currentCategory = searchParams.category as string || '';
   const currentSearch = searchParams.search as string || '';
   const currentPage = Number(searchParams.page) || 1;
+  const currentSort = searchParams.sort as string || 'lastEdited';
   
   // ページネーションのリンク生成
   const generatePageLink = (pageNum: number) => {
     const params = new URLSearchParams();
     if (currentCategory) params.append('category', currentCategory);
     if (currentSearch) params.append('search', currentSearch);
+    if (currentSort !== 'lastEdited') params.append('sort', currentSort);
     params.append('page', pageNum.toString());
     return `/wiki?${params.toString()}`;
   };
@@ -114,6 +138,7 @@ export default async function WikiPage({
     const params = new URLSearchParams();
     params.append('category', category);
     if (currentSearch) params.append('search', currentSearch);
+    if (currentSort !== 'lastEdited') params.append('sort', currentSort);
     return `/wiki?${params.toString()}`;
   };
   
@@ -121,6 +146,7 @@ export default async function WikiPage({
   const getClearCategoryLink = () => {
     const params = new URLSearchParams();
     if (currentSearch) params.append('search', currentSearch);
+    if (currentSort !== 'lastEdited') params.append('sort', currentSort);
     return `/wiki?${params.toString()}`;
   };
   

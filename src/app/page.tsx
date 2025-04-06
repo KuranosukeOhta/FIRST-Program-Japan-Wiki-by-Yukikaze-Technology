@@ -188,8 +188,8 @@ export default async function Home() {
           <p className="text-lg text-gray-600">最新の統計情報を確認できます</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow md:col-span-1 lg:col-span-1">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-gray-500 font-medium">総ページ数</h3>
               <BookOpen className="h-5 w-5 text-blue-500" />
@@ -198,21 +198,7 @@ export default async function Home() {
             <p className="mt-2 text-sm text-gray-500">最終更新: {stats.timeSinceLastSync || 'なし'}</p>
           </div>
           
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-gray-500 font-medium">同期ステータス</h3>
-              <RefreshCw className="h-5 w-5 text-green-500" />
-            </div>
-            <p className="text-xl font-bold text-gray-800">
-              {stats.latestSync?.status === 'completed' ? '完了' : 
-               stats.latestSync?.status === 'running' ? '同期中' : 'なし'}
-            </p>
-            <p className="mt-2 text-sm text-gray-500">
-              {stats.latestSync ? `${stats.latestSync.pages_synced}ページ・${stats.latestSync.blocks_synced}ブロック同期済み` : ''}
-            </p>
-          </div>
-          
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 col-span-1 md:col-span-2 hover:shadow-md transition-shadow">
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 col-span-1 md:col-span-1 lg:col-span-1 hover:shadow-md transition-shadow">
             <div className="flex items-center justify-between mb-2">
               <h3 className="text-gray-500 font-medium">カテゴリ分布</h3>
               <Tag className="h-5 w-5 text-purple-500" />

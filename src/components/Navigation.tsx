@@ -8,7 +8,7 @@ interface NavigationProps {
 
 export default function Navigation({ categories, className = "" }: NavigationProps) {
   return (
-    <div className={`bg-white shadow-sm border-b ${className}`}>
+    <div className={`bg-blue-50 shadow-sm border-b border-blue-100 ${className}`}>
       <div className="max-w-7xl mx-auto px-4 py-2">
         <div className="flex items-center space-x-6">
           <div className="relative group">

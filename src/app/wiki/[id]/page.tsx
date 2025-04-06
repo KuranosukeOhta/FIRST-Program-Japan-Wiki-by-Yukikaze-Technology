@@ -192,7 +192,7 @@ export function RelatedArticlesSection({ relatedPages }: RelatedArticlesSectionP
           </div>
         ) : (
           <div className="bg-white p-3 rounded text-center text-gray-500 text-sm">
-            <p>関連記事がありません</p>
+            <p>他の記事がありません</p>
           </div>
         )}
       </div>

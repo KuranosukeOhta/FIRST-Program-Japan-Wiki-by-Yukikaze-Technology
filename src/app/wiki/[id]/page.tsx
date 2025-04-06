@@ -6,6 +6,7 @@ import { getPageDetail, getCategories } from "@/lib/data";
 // import { getRelatedPages } from "@/lib/related";
 // import { NotionPage } from "@/types";
 import Link from "next/link";
+import { Search, Menu } from "lucide-react";
 
 interface PageProps {
   params: {
@@ -79,7 +80,11 @@ function generateTableOfContents(blocks: any[]) {
 // 著者リスト（ダミーデータ）
 const authors = [
   { id: "1", name: "山田太郎", avatar: null },
-  { id: "2", name: "佐藤花子", avatar: null }
+  { id: "2", name: "佐藤花子", avatar: null },
+  { id: "3", name: "鈴木一郎", avatar: null },
+  { id: "4", name: "田中二郎", avatar: null },
+  { id: "5", name: "高橋三郎", avatar: null },
+  { id: "6", name: "伊藤四郎", avatar: null }
 ];
 
 export default async function WikiDetailPage({ params }: PageProps) {
@@ -157,70 +162,54 @@ export default async function WikiDetailPage({ params }: PageProps) {
         </div>
       </div>
       
-      {/* メインコンテンツエリア */}
-      <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row">
-        {/* サイドバー（小画面ではメインコンテンツの上） */}
-        <div className="w-full md:w-64 md:flex-shrink-0 mb-6 md:mb-0 md:mr-8">
-          {/* 著者情報（最初に表示） */}
-          <div className="bg-white p-4 mb-4 rounded-lg shadow-sm border border-gray-200">
-            <div className="flex flex-col items-center mb-4">
-              <div className="bg-blue-500 rounded-full w-16 h-16 mb-2 flex items-center justify-center text-white text-2xl font-bold">
-                {page.authors && page.authors.length > 0 ? page.authors[0].substring(0, 1).toUpperCase() : "A"}
-              </div>
-              <h3 className="text-lg font-medium text-gray-800">
-                {page.authors && page.authors.length > 0 ? page.authors.join(', ') : "Wiki編集者"}
-              </h3>
-            </div>
-            <p className="text-center text-sm text-gray-600 mb-4">
-              FIRST Programに関する情報共有のためのウィキサイトです。
-            </p>
-            <div className="text-center">
-              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                {page.category || "未分類"}
-              </span>
+      {/* メインコンテンツエリア - 3カラムレイアウト */}
+      <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-12 gap-6">
+        {/* 左サイドバー - 記事検索と記事著者リスト */}
+        <div className="md:col-span-2">
+          {/* 記事検索バー */}
+          <div className="bg-gray-300 p-4 mb-4 rounded">
+            <h3 className="text-center text-gray-700 font-medium mb-2">記事検索バー</h3>
+            <div className="relative">
+              <input 
+                type="text" 
+                className="w-full bg-white rounded px-3 py-2 pr-8 text-sm"
+                placeholder="記事を検索..."
+              />
+              <Search className="absolute right-2 top-2 h-4 w-4 text-gray-400" />
             </div>
           </div>
           
-          {/* 目次 */}
-          {toc.length > 0 && (
-            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 sticky top-4">
-              <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
-                </svg>
-                目次
-              </h3>
-              <ul className="space-y-2">
-                {toc.map((item) => (
-                  <li key={item.id} style={{ paddingLeft: `${(item.level - 1) * 0.75}rem` }}>
-                    <a href={`#${item.id}`} className="text-gray-700 hover:text-blue-600 hover:underline text-sm flex items-center">
-                      <span className="w-2 h-2 rounded-full bg-blue-500 mr-2 flex-shrink-0"></span>
-                      {item.text}
-                    </a>
-                  </li>
-                ))}
-              </ul>
+          {/* 並び替えメニュー */}
+          <div className="bg-gray-300 p-3 mb-4 rounded flex items-center justify-between">
+            <span className="text-sm text-gray-700">並び替えメニュー</span>
+            <Menu className="h-4 w-4 text-gray-700" />
+          </div>
+          
+          {/* 記事著者リスト */}
+          {authors.map((author) => (
+            <div key={author.id} className="bg-gray-300 p-3 mb-4 rounded flex">
+              <div className="mr-3">
+                <div className="bg-blue-400 rounded-full w-10 h-10 flex items-center justify-center text-white text-sm font-medium">
+                  {author.name.substring(0, 1)}
+                </div>
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium mb-1">記事者名</p>
+                <p className="text-xs text-blue-500">{author.name}</p>
+              </div>
             </div>
-          )}
+          ))}
         </div>
         
-        {/* メインコンテンツ */}
-        <div className="flex-1">
+        {/* 中央カラム - 記事内容 */}
+        <div className="md:col-span-7">
           {/* 記事タイトル */}
-          <div className="bg-white p-5 mb-6 rounded-lg shadow-sm border border-gray-200">
-            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{page.title}</h1>
-            <div className="flex items-center text-sm text-gray-500 mt-2">
-              <span className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-                {new Date(page.last_edited_time).toLocaleDateString('ja-JP')}
-              </span>
-            </div>
+          <div className="bg-gray-300 p-5 mb-6 rounded">
+            <h1 className="text-2xl md:text-3xl font-bold text-center">{page.title}</h1>
           </div>
           
           {/* 記事内容 */}
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+          <div className="bg-gray-300 p-6 rounded">
             {/* 実際のNotion APIから取得したデータを表示 */}
             <div className="prose prose-blue max-w-none">
               <NotionContent blocks={blocks || []} />
@@ -229,12 +218,48 @@ export default async function WikiDetailPage({ params }: PageProps) {
             {/* データがない場合のフォールバック表示 */}
             {(!blocks || blocks.length === 0) && (
               <div className="text-center p-8 text-gray-500">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
                 <p className="text-lg font-medium">コンテンツがありません</p>
                 <p className="mt-2">この記事にはまだ内容が追加されていません。</p>
               </div>
+            )}
+          </div>
+        </div>
+        
+        {/* 右サイドバー - 著者情報と目次 */}
+        <div className="md:col-span-3">
+          {/* 著者情報 */}
+          <div className="bg-gray-300 p-4 mb-4 rounded">
+            <div className="flex flex-col items-center mb-4">
+              <div className="bg-blue-400 rounded-full w-16 h-16 mb-2 flex items-center justify-center text-white text-2xl font-bold">
+                {page.authors && page.authors.length > 0 ? page.authors[0].substring(0, 1).toUpperCase() : "A"}
+              </div>
+              <h3 className="text-lg font-medium text-center">
+                {page.authors && page.authors.length > 0 ? page.authors.join(', ') : "Wiki編集者"}
+              </h3>
+            </div>
+            <p className="text-center text-sm mb-4">プロフィール内容</p>
+          </div>
+          
+          {/* 目次 */}
+          <div className="bg-gray-300 p-4 rounded">
+            <h3 className="text-lg font-medium mb-4">目次</h3>
+            {toc.length > 0 ? (
+              <ul className="space-y-2">
+                {toc.map((item) => (
+                  <li key={item.id}>
+                    <a href={`#${item.id}`} className="text-gray-700 hover:text-blue-600 hover:underline text-sm">
+                      • {item.text}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-700 hover:text-blue-600 hover:underline text-sm">• はじめに</a></li>
+                <li><a href="#" className="text-gray-700 hover:text-blue-600 hover:underline text-sm">• .</a></li>
+                <li><a href="#" className="text-gray-700 hover:text-blue-600 hover:underline text-sm">• .</a></li>
+                <li><a href="#" className="text-gray-700 hover:text-blue-600 hover:underline text-sm">• .</a></li>
+              </ul>
             )}
           </div>
         </div>

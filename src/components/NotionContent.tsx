@@ -472,13 +472,55 @@ const renderBlock = (block: BlockContent, index: number): React.ReactNode => {
             href={fileUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center p-2 bg-gray-100 rounded-md hover:bg-gray-200"
+            className="inline-flex items-center p-3 bg-blue-50 rounded-md hover:bg-blue-100 border border-blue-200 transition-colors"
           >
-            <svg className="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-5 h-5 mr-2 text-blue-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
               <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd"></path>
             </svg>
-            {fileName}
+            <span>{fileName}</span>
           </a>
+          {block.file?.caption && block.file.caption.length > 0 && (
+            <div className="mt-2 text-sm text-gray-500">
+              <RichText richText={block.file.caption} />
+            </div>
+          )}
+        </div>
+      );
+      break;
+
+    case 'pdf':
+      const pdfUrl = block.pdf?.file?.url || block.pdf?.external?.url || '';
+      const pdfName = pdfUrl.split('/').pop() || 'PDFファイル';
+      blockContent = (
+        <div className="my-4">
+          <div className="mb-2">
+            <a
+              href={pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center p-3 bg-red-50 rounded-md hover:bg-red-100 border border-red-200 transition-colors"
+            >
+              <svg className="w-5 h-5 mr-2 text-red-600" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"></path>
+                <path d="M8 11a1 1 0 100-2H6a1 1 0 000 2h2zm2 3a1 1 0 110-2h3a1 1 0 110 2h-3z"></path>
+              </svg>
+              <span>{pdfName}</span>
+            </a>
+          </div>
+          <div className="border border-gray-200 rounded-md overflow-hidden">
+            <iframe 
+              src={pdfUrl} 
+              width="100%" 
+              height="500" 
+              style={{ border: 'none' }} 
+              title={pdfName}
+            />
+          </div>
+          {block.pdf?.caption && block.pdf.caption.length > 0 && (
+            <div className="mt-2 text-sm text-gray-500">
+              <RichText richText={block.pdf.caption} />
+            </div>
+          )}
         </div>
       );
       break;

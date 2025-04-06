@@ -282,7 +282,14 @@ export default async function WikiDetailPage({ params }: PageProps) {
                 {page.authors && page.authors.length > 0 ? page.authors.join(', ') : "Wiki編集者"}
               </h3>
             </div>
-            <p className="text-center text-sm mb-4">プロフィール内容</p>
+            <div className="text-center">
+              <p className="text-gray-600 text-sm">記事の執筆者</p>
+              <p className="text-xs text-gray-500 mt-1">
+                最終更新: {new Date(page.last_edited_time).toLocaleString('ja-JP', { 
+                  year: 'numeric', month: '2-digit', day: '2-digit'
+                })}
+              </p>
+            </div>
           </div>
           
           {/* 目次 - クライアントコンポーネント化 */}

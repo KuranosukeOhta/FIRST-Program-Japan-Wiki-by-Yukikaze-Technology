@@ -46,12 +46,7 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
           ))}
         </ul>
       ) : (
-        <ul className="space-y-2">
-          <li><a href="#" className="text-gray-700 hover:text-blue-600 hover:underline text-sm">• はじめに</a></li>
-          <li><a href="#" className="text-gray-700 hover:text-blue-600 hover:underline text-sm">• .</a></li>
-          <li><a href="#" className="text-gray-700 hover:text-blue-600 hover:underline text-sm">• .</a></li>
-          <li><a href="#" className="text-gray-700 hover:text-blue-600 hover:underline text-sm">• .</a></li>
-        </ul>
+        <p className="text-gray-500 text-sm">この記事には目次がありません</p>
       )}
     </div>
   );

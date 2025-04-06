@@ -1,7 +1,7 @@
 import React from "react";
 import { Metadata } from "next";
 import NotionContent from "@/components/NotionContent";
-import { getPageDetail, getCategories } from "@/lib/data";
+import { getPageDetail, getCategories, getLatestPages } from "@/lib/data";
 // 関連ページの機能を削除
 // import { getRelatedPages } from "@/lib/related";
 // import { NotionPage } from "@/types";
@@ -39,6 +39,17 @@ async function fetchPageData(id: string) {
   } catch (error) {
     console.error(`Error fetching page data: ${error}`);
     return null;
+  }
+}
+
+// 最新記事を取得する関数
+async function fetchLatestPages(limit = 5) {
+  try {
+    const result = await getLatestPages(limit);
+    return result.pages || [];
+  } catch (error) {
+    console.error(`Error fetching latest pages: ${error}`);
+    return [];
   }
 }
 
@@ -97,6 +108,12 @@ function generateTableOfContents(blocks: any[]) {
 export default async function WikiDetailPage({ params }: PageProps) {
   const pageData = await fetchPageData(params.id);
   const categories = await getCategories();
+  const latestPages = await fetchLatestPages(5);
+  
+  // デバッグ: 取得したページデータのauthorsフィールドを確認
+  if (pageData && pageData.page) {
+    console.log('Page data authors:', pageData.page.authors);
+  }
   
   if (!pageData) {
     return (
@@ -179,36 +196,65 @@ export default async function WikiDetailPage({ params }: PageProps) {
           {/* 並び替えメニュー */}
           <SortMenu />
           
-          {/* 記事著者リスト - 実データから表示 */}
-          {page.authors && Array.isArray(page.authors) && page.authors.length > 0 ? ( // 文法の説明：page.authorsが配列であり、かつ要素数が0より大きい場合
-            // 実際の著者データがある場合
-            page.authors.filter(author => typeof author === 'string').map((author, index) => (
-              <div key={index} className="bg-gray-300 p-3 mb-4 rounded flex">
-                <div className="mr-3">
-                  <div className="bg-blue-400 rounded-full w-10 h-10 flex items-center justify-center text-white text-sm font-medium">
-                    {author.substring(0, 1).toUpperCase()}
-                  </div>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium mb-1">{page.title || "ページタイトル"}</p>
-                  <p className="text-xs text-blue-500">{author || "Wiki編集者"}   </p>
-                </div>
+          {/* 関連記事一覧 - 同じカテゴリの他の記事を表示 */}
+          <div className="bg-gray-300 p-3 mb-4 rounded">
+            <h3 className="text-center text-gray-700 font-medium mb-3">関連記事</h3>
+            
+            {pageData.relatedPages && pageData.relatedPages.length > 0 ? (
+              <div className="space-y-3">
+                {pageData.relatedPages.map((relatedPage) => (
+                  <Link key={relatedPage.id} href={`/wiki/${relatedPage.id}`}>
+                    <div className="bg-white p-3 rounded hover:bg-blue-50 transition-colors">
+                      <p className="text-sm font-medium text-gray-800 mb-1 line-clamp-2">{relatedPage.title}</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                          {relatedPage.category || '未分類'}
+                        </span>
+                        {Array.isArray(relatedPage.authors) && relatedPage.authors.length > 0 && (
+                          <span className="text-xs text-gray-500">
+                            {relatedPage.authors[0]}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
               </div>
-            ))
-          ) : (
-            // 著者データがない場合のダミー表示
-            <div className="bg-gray-300 p-3 mb-4 rounded flex">
-              <div className="mr-3">
-                <div className="bg-blue-400 rounded-full w-10 h-10 flex items-center justify-center text-white text-sm font-medium">
-                  W
-                </div>
+            ) : (
+              <div className="bg-white p-3 rounded text-center text-gray-500 text-sm">
+                <p>関連記事がありません</p>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium mb-1">ページタイトル</p>
-                <p className="text-xs text-blue-500">Wiki編集者</p>
+            )}
+          </div>
+          
+          {/* 最新の記事一覧 */}
+          <div className="bg-gray-300 p-3 mb-4 rounded">
+            <h3 className="text-center text-gray-700 font-medium mb-3">最近更新された記事</h3>
+            
+            {latestPages && latestPages.length > 0 ? (
+              <div className="space-y-3">
+                {latestPages.map((latestPage) => (
+                  <Link key={latestPage.id} href={`/wiki/${latestPage.id}`}>
+                    <div className="bg-white p-3 rounded hover:bg-blue-50 transition-colors">
+                      <p className="text-sm font-medium text-gray-800 mb-1 line-clamp-2">{latestPage.title}</p>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-800 rounded">
+                          {latestPage.category || '未分類'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {new Date(latestPage.last_edited_time).toLocaleDateString('ja-JP')}
+                        </span>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
               </div>
-            </div>
-          )}
+            ) : (
+              <div className="bg-white p-3 rounded text-center text-gray-500 text-sm">
+                <p>最新の記事がありません</p>
+              </div>
+            )}
+          </div>
         </div>
         
         {/* 中央カラム - 記事内容 */}

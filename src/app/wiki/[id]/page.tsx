@@ -191,18 +191,18 @@ export default async function WikiDetailPage({ params }: PageProps) {
           </div>
           
           {/* 記事著者リスト - 実データから表示 */}
-          {page.authors && page.authors.length > 0 ? (
+          {page.authors && Array.isArray(page.authors) && page.authors.length > 0 ? (
             // 実際の著者データがある場合
-            page.authors.map((author, index) => (
+            page.authors.filter(author => typeof author === 'string').map((author, index) => (
               <div key={index} className="bg-gray-300 p-3 mb-4 rounded flex">
                 <div className="mr-3">
                   <div className="bg-blue-400 rounded-full w-10 h-10 flex items-center justify-center text-white text-sm font-medium">
-                    {typeof author === 'string' ? author.substring(0, 1).toUpperCase() : 'A'}
+                    {author.substring(0, 1).toUpperCase()}
                   </div>
                 </div>
                 <div className="flex-1">
                   <p className="text-sm font-medium mb-1">記事者名</p>
-                  <p className="text-xs text-blue-500">{typeof author === 'string' ? author : 'Unknown'}</p>
+                  <p className="text-xs text-blue-500">{author}</p>
                 </div>
               </div>
             ))
@@ -276,10 +276,14 @@ export default async function WikiDetailPage({ params }: PageProps) {
           <div className="bg-gray-300 p-4 mb-4 rounded">
             <div className="flex flex-col items-center mb-4">
               <div className="bg-blue-400 rounded-full w-16 h-16 mb-2 flex items-center justify-center text-white text-2xl font-bold">
-                {page.authors && page.authors.length > 0 ? page.authors[0].substring(0, 1).toUpperCase() : "A"}
+                {page.authors && Array.isArray(page.authors) && page.authors.length > 0 && typeof page.authors[0] === 'string' 
+                  ? page.authors[0].substring(0, 1).toUpperCase() 
+                  : "A"}
               </div>
               <h3 className="text-lg font-medium text-center">
-                {page.authors && page.authors.length > 0 ? page.authors.join(', ') : "Wiki編集者"}
+                {page.authors && Array.isArray(page.authors) && page.authors.length > 0 
+                  ? page.authors.filter(author => typeof author === 'string').join(', ') 
+                  : "Wiki編集者"}
               </h3>
             </div>
             <div className="text-center">

@@ -190,8 +190,8 @@ export default async function WikiDetailPage({ params }: PageProps) {
                   </div>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium mb-1">記事者名</p>
-                  <p className="text-xs text-blue-500">{author}</p>
+                  <p className="text-sm font-medium mb-1">{page.title || "ページタイトル"}</p>
+                  <p className="text-xs text-blue-500">{author || "Wiki編集者"}   </p>
                 </div>
               </div>
             ))
@@ -204,7 +204,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
                 </div>
               </div>
               <div className="flex-1">
-                <p className="text-sm font-medium mb-1">記事者名</p>
+                <p className="text-sm font-medium mb-1">ページタイトル</p>
                 <p className="text-xs text-blue-500">Wiki編集者</p>
               </div>
             </div>

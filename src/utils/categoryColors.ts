@@ -27,18 +27,18 @@ const COLOR_PALETTE: CategoryColorScheme[] = [
 
 // 既存の主要カテゴリに対する固定マッピング（互換性のため維持）
 const CATEGORY_COLORS: Record<string, CategoryColorScheme> = {
-  'FRC': { bg: 'bg-red-100', text: 'text-red-800' },
-  'FTC': { bg: 'bg-orange-100', text: 'text-orange-800' },
-  'FLL': { bg: 'bg-green-100', text: 'text-green-800' },
-  'チュートリアル': { bg: 'bg-purple-100', text: 'text-purple-800' },
-  'イベント': { bg: 'bg-yellow-100', text: 'text-yellow-800' },
-  'その他': { bg: 'bg-gray-100', text: 'text-gray-800' },
-  'レポート': { bg: 'bg-teal-100', text: 'text-teal-800' },
-  'ニュース': { bg: 'bg-pink-100', text: 'text-pink-800' },
-  'インタビュー': { bg: 'bg-indigo-100', text: 'text-indigo-800' },
-  'ガイド': { bg: 'bg-blue-100', text: 'text-blue-800' },
-  'ハードウェア': { bg: 'bg-amber-100', text: 'text-amber-800' },
-  'ソフトウェア': { bg: 'bg-cyan-100', text: 'text-cyan-800' },
+  'チーム管理': { bg: 'bg-red-100', text: 'text-red-800' },
+  '数学': { bg: 'bg-orange-100', text: 'text-orange-800' },
+  'プログラミング': { bg: 'bg-green-100', text: 'text-green-800' },
+  'ロボット製作': { bg: 'bg-purple-100', text: 'text-purple-800' },
+  '運営': { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+  '大会参加': { bg: 'bg-gray-100', text: 'text-gray-800' },
+  '広報': { bg: 'bg-teal-100', text: 'text-teal-800' },
+  '資金/会計': { bg: 'bg-pink-100', text: 'text-pink-800' },
+  'アウトリーチ': { bg: 'bg-indigo-100', text: 'text-indigo-800' },
+  'プロジェクト': { bg: 'bg-blue-100', text: 'text-blue-800' },
+  '資料作成': { bg: 'bg-amber-100', text: 'text-amber-800' },
+  'インタビュー': { bg: 'bg-cyan-100', text: 'text-cyan-800' },
 };
 
 // デフォルトの色

@@ -20,9 +20,9 @@ export default async function TeamPage() {
         <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">運営団体について</h1>
         
         <div className="bg-blue-50 p-6 rounded-lg shadow-sm mb-10">
-          <h2 className="text-xl font-semibold mb-4 text-gray-700">ユキカゼテクノロジー について</h2>
+          <h2 className="text-xl font-semibold mb-4 text-gray-700">Yukikaze Technology について</h2>
           <p className="text-gray-600 mb-4">
-            ユキカゼテクノロジーは、日本の若者に科学技術やロボティクスの面白さを伝え、次世代のイノベーターを育成することを目指す団体です。
+            Yukikaze Technologyは、日本の若者に科学技術やロボティクスの面白さを伝え、次世代のイノベーターを育成することを目指す団体です。
             FIRSTプログラムの日本での普及・発展のために、様々な活動を行っています。
           </p>
           <p className="text-gray-600">

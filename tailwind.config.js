@@ -7,10 +7,14 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ['var(--font-noto-sans-jp)', 'sans-serif'],
+      },
       typography: {
         DEFAULT: {
           css: {
             maxWidth: '100%',
+            fontFamily: 'var(--font-noto-sans-jp), sans-serif',
           },
         },
       },

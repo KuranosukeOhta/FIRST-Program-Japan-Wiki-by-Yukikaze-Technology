@@ -31,23 +31,19 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
   return (
     <div className="bg-gray-300 p-4 rounded">
       <h3 className="text-lg font-medium mb-4">目次</h3>
-      {toc.length > 0 ? (
-        <ul className="space-y-2">
-          {toc.map((item) => (
-            <li key={item.id}>
-              <a 
-                href={`#${item.id}`} 
-                className="text-gray-700 hover:text-blue-600 hover:underline text-sm"
-                onClick={(e) => handleClick(e, item.id)}
-              >
-                • {item.text}
-              </a>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="text-gray-500 text-sm">この記事には目次がありません</p>
-      )}
+      <ul className="space-y-2">
+        {toc.map((item) => (
+          <li key={item.id}>
+            <a 
+              href={`#${item.id}`} 
+              className="text-gray-700 hover:text-blue-600 hover:underline text-sm"
+              onClick={(e) => handleClick(e, item.id)}
+            >
+              • {item.text}
+            </a>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 } 

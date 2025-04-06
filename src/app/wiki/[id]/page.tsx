@@ -292,8 +292,8 @@ export default async function WikiDetailPage({ params }: PageProps) {
             </div>
           </div>
           
-          {/* 目次 - クライアントコンポーネント化 */}
-          <TableOfContents toc={toc} />
+          {/* 目次 - クライアントコンポーネント化（目次がある場合のみ表示） */}
+          {toc.length > 0 && <TableOfContents toc={toc} />}
         </div>
       </div>
     </div>

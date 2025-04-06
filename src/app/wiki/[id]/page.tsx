@@ -321,9 +321,9 @@ export default async function WikiDetailPage({ params }: PageProps) {
                   : '匿名編集者'}
               </h3>
             </div>
-            <div className="text-center">
+            {/* <div className="text-center">
               <p className="text-gray-600 text-sm">記事の執筆者プロフィール(未実装)</p>
-            </div>
+            </div> */}
           </div>
           
           {/* 目次 - クライアントコンポーネント化（目次がある場合のみ表示） */}

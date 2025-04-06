@@ -151,6 +151,7 @@ export async function getLatestPages(limit = 5) {
         title: 'データ取得エラー', 
         category: 'エラー', 
         last_edited_time: new Date().toISOString(),
+        created_time: new Date().toISOString(),
         authors: []
       }
     ]
@@ -237,7 +238,28 @@ export async function getWikiPages(params: {
       // created_timeをlast_edited_timeとして返すためのマッピング
       const mappedPages = pages?.map(page => ({
         ...page,
-        last_edited_time: page.created_time
+        last_edited_time: page.last_edited_time || page.created_time,
+        authors: (() => {
+          // authorsフィールドの処理
+          if (!page.authors) return [];
+          
+          // すでに配列なら、そのまま返す
+          if (Array.isArray(page.authors)) return page.authors;
+          
+          // JSON文字列の場合はパースを試みる
+          if (typeof page.authors === 'string') {
+            try {
+              const parsed = JSON.parse(page.authors);
+              return Array.isArray(parsed) ? parsed : [page.authors];
+            } catch (e) {
+              console.error('Failed to parse authors as JSON:', e);
+              return [page.authors]; // パースに失敗した場合は文字列として扱う
+            }
+          }
+          
+          // その他の型の場合は空配列
+          return [];
+        })()
       })) || [];
       
       return {

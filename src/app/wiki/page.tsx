@@ -11,6 +11,7 @@ interface WikiPageResult {
     category: string;
     last_edited_time: string;
     authors?: string[];
+    created_time: string;
   }>;
   total: number;
   page: number;
@@ -99,9 +100,9 @@ async function fetchWikiPages(searchParams: { [key: string]: string | string[] |
     // エラー時もダミーデータを返す
     return {
       pages: [
-        { id: '1', title: 'FRC 2024 ルール概要', category: 'FRC', last_edited_time: '2024-01-15T12:00:00Z', authors: ['山田太郎'] },
-        { id: '2', title: 'FTC パーツリスト', category: 'FTC', last_edited_time: '2024-01-14T15:30:00Z', authors: ['鈴木花子', '田中一郎'] },
-        { id: '3', title: 'プログラミング入門', category: 'チュートリアル', last_edited_time: '2024-01-13T09:45:00Z', authors: ['佐藤次郎'] }
+        { id: '1', title: 'FRC 2024 ルール概要', category: 'FRC', last_edited_time: '2024-01-15T12:00:00Z', authors: ['山田太郎'], created_time: '2024-01-10T12:00:00Z' },
+        { id: '2', title: 'FTC パーツリスト', category: 'FTC', last_edited_time: '2024-01-14T15:30:00Z', authors: ['鈴木花子', '田中一郎'], created_time: '2024-01-05T15:30:00Z' },
+        { id: '3', title: 'プログラミング入門', category: 'チュートリアル', last_edited_time: '2024-01-13T09:45:00Z', authors: ['佐藤次郎'], created_time: '2024-01-01T09:45:00Z' }
       ],
       total: 3,
       page: 1,
@@ -235,9 +236,9 @@ export default async function WikiPage({
                   </span>
                 </div>
                 <h2 className="text-xl font-semibold text-gray-800 hover:text-blue-600">{page.title}</h2>
-                {page.authors && page.authors.length > 0 && (
+                {page.authors && Array.isArray(page.authors) && page.authors.length > 0 && (
                   <p className="text-sm text-gray-600 mt-1">
-                    執筆者: {page.authors.join(', ')}
+                    執筆者: {page.authors.filter(author => typeof author === 'string').join(', ')}
                   </p>
                 )}
               </div>

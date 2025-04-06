@@ -73,19 +73,23 @@ function generateTableOfContents(blocks: any[]) {
     
     const richText = content[heading.type]?.rich_text || [];
     const text = richText.map((rt: any) => rt.plain_text || '').join('');
-    return { id: `heading-${index}`, text: text || `見出し ${index + 1}`, level };
+    // ヘッダーIDを安定させるために見出しテキストからスラッグを生成
+    const slug = text
+      ? text
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, '') // 特殊文字を除去
+          .replace(/\s+/g, '-') // スペースをハイフンに変換
+          .replace(/--+/g, '-') // 連続するハイフンを1つに
+      : `heading-${index}`;
+          
+    return { 
+      id: slug, 
+      text: text || `見出し ${index + 1}`, 
+      level,
+      blockId: heading.id // 元のブロックIDも保持
+    };
   });
 }
-
-// 著者リスト（ダミーデータ）
-const authors = [
-  { id: "1", name: "山田太郎", avatar: null },
-  { id: "2", name: "佐藤花子", avatar: null },
-  { id: "3", name: "鈴木一郎", avatar: null },
-  { id: "4", name: "田中二郎", avatar: null },
-  { id: "5", name: "高橋三郎", avatar: null },
-  { id: "6", name: "伊藤四郎", avatar: null }
-];
 
 export default async function WikiDetailPage({ params }: PageProps) {
   const pageData = await fetchPageData(params.id);
@@ -185,20 +189,36 @@ export default async function WikiDetailPage({ params }: PageProps) {
             <Menu className="h-4 w-4 text-gray-700" />
           </div>
           
-          {/* 記事著者リスト */}
-          {authors.map((author) => (
-            <div key={author.id} className="bg-gray-300 p-3 mb-4 rounded flex">
+          {/* 記事著者リスト - 実データから表示 */}
+          {page.authors && page.authors.length > 0 ? (
+            // 実際の著者データがある場合
+            page.authors.map((author, index) => (
+              <div key={index} className="bg-gray-300 p-3 mb-4 rounded flex">
+                <div className="mr-3">
+                  <div className="bg-blue-400 rounded-full w-10 h-10 flex items-center justify-center text-white text-sm font-medium">
+                    {typeof author === 'string' ? author.substring(0, 1).toUpperCase() : 'A'}
+                  </div>
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium mb-1">記事者名</p>
+                  <p className="text-xs text-blue-500">{typeof author === 'string' ? author : 'Unknown'}</p>
+                </div>
+              </div>
+            ))
+          ) : (
+            // 著者データがない場合のダミー表示
+            <div className="bg-gray-300 p-3 mb-4 rounded flex">
               <div className="mr-3">
                 <div className="bg-blue-400 rounded-full w-10 h-10 flex items-center justify-center text-white text-sm font-medium">
-                  {author.name.substring(0, 1)}
+                  W
                 </div>
               </div>
               <div className="flex-1">
                 <p className="text-sm font-medium mb-1">記事者名</p>
-                <p className="text-xs text-blue-500">{author.name}</p>
+                <p className="text-xs text-blue-500">Wiki編集者</p>
               </div>
             </div>
-          ))}
+          )}
         </div>
         
         {/* 中央カラム - 記事内容 */}
@@ -212,7 +232,21 @@ export default async function WikiDetailPage({ params }: PageProps) {
           <div className="bg-gray-300 p-6 rounded">
             {/* 実際のNotion APIから取得したデータを表示 */}
             <div className="prose prose-blue max-w-none">
-              <NotionContent blocks={blocks || []} />
+              {/* 目次のアンカーリンクのためにheadingIdをブロックに追加 */}
+              <NotionContent 
+                blocks={blocks?.map((block, index) => {
+                  if (block.type.startsWith('heading_')) {
+                    // 目次項目から対応するデータを検索
+                    const tocItem = toc.find(item => item.blockId === block.id);
+                    return { 
+                      ...block, 
+                      // 対応する目次項目があればそのIDを使用、なければブロックのインデックス
+                      headingId: tocItem ? tocItem.id : `heading-${index}`
+                    };
+                  }
+                  return block;
+                }) || []}
+              />
             </div>
             
             {/* データがない場合のフォールバック表示 */}
@@ -247,7 +281,26 @@ export default async function WikiDetailPage({ params }: PageProps) {
               <ul className="space-y-2">
                 {toc.map((item) => (
                   <li key={item.id}>
-                    <a href={`#${item.id}`} className="text-gray-700 hover:text-blue-600 hover:underline text-sm">
+                    <a 
+                      href={`#${item.id}`} 
+                      className="text-gray-700 hover:text-blue-600 hover:underline text-sm"
+                      // スムーズスクロールと、ヘッダー分のオフセットを加えるため
+                      onClick={(e) => {
+                        e.preventDefault();
+                        const element = document.getElementById(item.id);
+                        if (element) {
+                          // ヘッダーの高さ + 余白を考慮
+                          const offset = 100;
+                          const elementPosition = element.getBoundingClientRect().top + window.scrollY;
+                          window.scrollTo({
+                            top: elementPosition - offset,
+                            behavior: 'smooth'
+                          });
+                          // URLにハッシュを追加
+                          window.history.pushState(null, '', `#${item.id}`);
+                        }
+                      }}
+                    >
                       • {item.text}
                     </a>
                   </li>

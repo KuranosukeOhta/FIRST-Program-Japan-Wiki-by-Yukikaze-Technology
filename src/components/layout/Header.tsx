@@ -29,10 +29,6 @@ export const Header: React.FC = () => {
               <Search className="h-5 w-5 text-blue-300" />
             </div>
           </div>
-          
-          <a href="#" onClick={(e) => e.preventDefault()} className="ml-4 bg-blue-800 hover:bg-blue-900 px-4 py-2 rounded-lg hidden sm:block">
-            管理画面
-          </a>
         </div>
       </div>
     </header>

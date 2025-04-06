@@ -271,8 +271,8 @@ export default async function WikiDetailPage({ params }: PageProps) {
               </div>
               <h3 className="text-lg font-medium text-center">
                 {page.authors && Array.isArray(page.authors) && page.authors.length > 0 
-                  ? page.authors.filter(author => typeof author === 'string').join(', ') 
-                  : "Wiki編集者"}
+                  ? page.authors.filter(author => typeof author === 'string').join(', ') // 著者が存在し、かつ最初の著者が文字列である場合に、著者名を表示
+                  : "匿名編集者"} // 著者が存在しない場合は"匿名編集者"を表示
               </h3>
             </div>
             <div className="text-center">

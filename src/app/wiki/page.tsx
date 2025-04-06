@@ -152,9 +152,9 @@ export default async function WikiPage({
   };
   
   return (
-    <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">ウィキページ一覧</h1>
+    <div className="px-4 py-8 md:px-8 lg:px-12">
+      <div className="mb-12">
+        <h1 className="text-3xl font-bold text-gray-800 mb-4">ウィキページ一覧</h1>
         <p className="text-gray-600">
           全{result.total}件中 {(currentPage - 1) * result.limit + 1}～
           {Math.min(currentPage * result.limit, result.total)}件表示
@@ -162,7 +162,7 @@ export default async function WikiPage({
       </div>
       
       {/* 検索とフィルター */}
-      <div className="flex flex-col md:flex-row gap-4 mb-8">
+      <div className="flex flex-col md:flex-row gap-6 mb-10">
         <div className="flex-1">
           <form action="/wiki" method="get" className="flex">
             <div className="relative flex-1">
@@ -171,7 +171,7 @@ export default async function WikiPage({
                 name="search"
                 placeholder="ページを検索..."
                 defaultValue={currentSearch}
-                className="w-full p-3 pr-10 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full p-4 pr-10 border border-gray-300 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                 <Search className="h-5 w-5 text-gray-400" />
@@ -184,7 +184,7 @@ export default async function WikiPage({
             
             <button 
               type="submit" 
-              className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded-r-lg"
+              className="bg-blue-600 hover:bg-blue-700 text-white py-4 px-8 rounded-r-lg"
             >
               検索
             </button>
@@ -201,15 +201,15 @@ export default async function WikiPage({
       
       {/* 検索結果がない場合 */}
       {result.pages.length === 0 && (
-        <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-          <div className="mb-4">
-            <RefreshCw className="h-12 w-12 mx-auto text-gray-400" />
+        <div className="bg-gray-50 border border-gray-200 rounded-lg p-10 md:p-12 text-center shadow-sm">
+          <div className="mb-6">
+            <RefreshCw className="h-14 w-14 mx-auto text-gray-400" />
           </div>
-          <h3 className="text-xl font-semibold text-gray-700 mb-2">結果が見つかりません</h3>
-          <p className="text-gray-600 mb-4">
+          <h3 className="text-xl font-semibold text-gray-700 mb-4">結果が見つかりません</h3>
+          <p className="text-gray-600 mb-6">
             検索条件に一致するページがありませんでした。別のキーワードで検索するか、フィルターを解除してみてください。
           </p>
-          <Link href="/wiki" className="text-blue-600 hover:underline">
+          <Link href="/wiki" className="text-blue-600 hover:underline font-medium">
             すべてのページを表示
           </Link>
         </div>
@@ -217,12 +217,12 @@ export default async function WikiPage({
       
       {/* ページ一覧 */}
       {result.pages.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-200">
+        <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-200 shadow-sm">
           {result.pages.map((page) => (
             <Link key={page.id} href={`/wiki/${page.id}`}>
-              <div className="p-5 hover:bg-gray-50 transition-colors">
-                <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
-                  <span className="px-2.5 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+              <div className="p-6 md:p-8 hover:bg-gray-50 transition-colors">
+                <div className="flex flex-wrap justify-between items-start gap-3 mb-3">
+                  <span className="px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded">
                     {page.category || '未分類'}
                   </span>
                   <span className="text-xs text-gray-500">
@@ -235,9 +235,9 @@ export default async function WikiPage({
                     })}
                   </span>
                 </div>
-                <h2 className="text-xl font-semibold text-gray-800 hover:text-blue-600">{page.title}</h2>
+                <h2 className="text-xl font-semibold text-gray-800 hover:text-blue-600 mb-2">{page.title}</h2>
                 {page.authors && Array.isArray(page.authors) && page.authors.length > 0 && (
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-600 mt-2">
                     執筆者: {page.authors.filter(author => typeof author === 'string').join(', ')}
                   </p>
                 )}
@@ -249,12 +249,12 @@ export default async function WikiPage({
       
       {/* ページネーション */}
       {result.totalPages > 1 && (
-        <div className="mt-8 flex justify-center">
-          <nav className="flex items-center space-x-1">
+        <div className="mt-12 flex justify-center">
+          <nav className="flex items-center space-x-2">
             {currentPage > 1 && (
               <Link
                 href={generatePageLink(currentPage - 1)}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-5 py-3 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
               >
                 前へ
               </Link>
@@ -266,7 +266,7 @@ export default async function WikiPage({
                 <Link
                   key={pageNum}
                   href={generatePageLink(pageNum)}
-                  className={`px-4 py-2 border rounded-md ${
+                  className={`px-5 py-3 border rounded-md text-sm ${
                     pageNum === currentPage
                       ? 'bg-blue-600 text-white border-blue-600'
                       : 'border-gray-300 hover:bg-gray-50'
@@ -280,7 +280,7 @@ export default async function WikiPage({
             {currentPage < result.totalPages && (
               <Link
                 href={generatePageLink(currentPage + 1)}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50"
+                className="px-5 py-3 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
               >
                 次へ
               </Link>

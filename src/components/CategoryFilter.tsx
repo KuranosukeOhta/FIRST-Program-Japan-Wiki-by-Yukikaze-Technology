@@ -19,7 +19,7 @@ export default function CategoryFilter({
   categoryBasePath = '/wiki?category=' 
 }: CategoryFilterProps) {
   return (
-    <div className="w-full md:w-auto">
+    <div className="w-full">
       <div className="bg-white p-4 border border-gray-300 rounded-lg shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-medium text-gray-700">カテゴリで絞り込む</h3>

@@ -188,8 +188,8 @@ export default async function WikiPage({
       </div>
       
       {/* 検索とフィルター */}
-      <div className="flex flex-col md:flex-row gap-6 mb-10">
-        <div className="flex-1">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+        <div className="w-full">
           <form action="/wiki" method="get" className="flex">
             <div className="relative flex-1">
               <input

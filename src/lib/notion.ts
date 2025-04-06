@@ -124,10 +124,10 @@ export function extractStatus(page: any): string {
   }
 }
 
-// 記事が公開済みかどうかを判定する関数
+// ページが公開済みかどうかを判定する関数
 export function isPublished(page: any): boolean {
   const status = extractStatus(page);
-  return status === '記事公開済み';
+  return status === 'ページ公開済み';
 }
 
 // Notionページの元URLを生成する関数

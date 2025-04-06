@@ -37,7 +37,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Zennスタイルの記事コンテナ */
+/* Zennスタイルのページコンテナ */
 @layer components {
   .zenn-article-container {
     max-width: 1280px;

@@ -28,7 +28,7 @@ const AboutPage = () => {
       </p>
       <h2>コンテンツ提供のお願い</h2>
       <p>
-        このWikiは皆様の貢献によって成り立っています。新しい記事の提案や既存記事の
+        このWikiは皆様の貢献によって成り立っています。新しいページの提案や既存ページの
         改善提案は大歓迎です。ご協力をお願いいたします。
       </p>
     </div>
@@ -118,7 +118,7 @@ const TitleManager = () => {
     } else if (location.pathname.startsWith('/page/')) {
       // 詳細ページではタイトルは動的に設定されるため、初期値のまま
     } else if (location.pathname.startsWith('/all-pages')) {
-      title = "すべての記事 | FIRST Program Japan Wiki";
+      title = "すべてのページ | FIRST Program Japan Wiki";
     } else if (location.pathname.startsWith('/category/')) {
       const category = decodeURIComponent(location.pathname.split('/')[2] || '');
       title = `${category}カテゴリ | FIRST Program Japan Wiki`;

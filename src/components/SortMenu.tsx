@@ -49,7 +49,7 @@ const SortMenu = ({
     setIsOpen(false);
     
     if (mode === "global") {
-      // 記事一覧ページにリダイレクト
+      // ページ一覧ページにリダイレクト
       router.push(`/wiki?sort=${option.value}`);
     } else if (mode === "related" && onSortChange) {
       // 親コンポーネントにソート変更を通知

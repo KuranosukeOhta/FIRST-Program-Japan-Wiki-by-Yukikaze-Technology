@@ -303,7 +303,7 @@ function PageDetail() {
     if (!page || !page.properties) return 'Untitled';
 
     const titleProp = page.properties.title || 
-                     page.properties['記事タイトル'] || 
+                     page.properties['ページタイトル'] || 
                      page.properties.Name;
     
     if (titleProp?.title && titleProp.title.length > 0) {
@@ -313,7 +313,7 @@ function PageDetail() {
     return 'Untitled';
   };
 
-  // 記事タイトルが取得できたらdocument.titleを更新
+  // ページタイトルが取得できたらdocument.titleを更新
   useEffect(() => {
     const title = getPageTitle();
     if (title !== 'Untitled') {

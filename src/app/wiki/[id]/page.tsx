@@ -272,7 +272,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
               運営団体について
             </Link>
             <Link href="/edit" className="text-gray-700 hover:text-blue-600 font-medium py-2">
-              記事を書く
+              ページを書く
             </Link>
             <Link href="/contact" className="text-gray-700 hover:text-blue-600 font-medium py-2">
               お問い合わせ
@@ -409,7 +409,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
               </>
             )}
             {/* <div className="text-center">
-              <p className="text-gray-600 text-sm">記事の執筆者プロフィール(未実装)</p>
+              <p className="text-gray-600 text-sm">ページの執筆者プロフィール(未実装)</p>
             </div> */}
           </div>
           

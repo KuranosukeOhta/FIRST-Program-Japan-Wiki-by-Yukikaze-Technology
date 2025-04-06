@@ -143,19 +143,14 @@ const HeadingBlock = ({ level, block, headingId }: { level: number; block: any; 
   
   const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
   const className = {
-    1: 'text-3xl font-bold mt-10 mb-4 pb-2 border-b',
-    2: 'text-2xl font-bold mt-8 mb-3',
-    3: 'text-xl font-bold mt-6 mb-3',
+    1: 'text-2xl font-bold mt-8 mb-4',
+    2: 'text-xl font-bold mt-6 mb-3',
+    3: 'text-lg font-bold mt-4 mb-2',
   }[level];
   
   return (
     <HeadingTag id={headingId} className={className}>
-      <a href={`#${headingId}`} className="heading-link">
-        {renderRichText(richText)}
-        <span className="heading-anchor opacity-0 group-hover:opacity-100 ml-2 text-blue-500">
-          #
-        </span>
-      </a>
+      {renderRichText(richText)}
     </HeadingTag>
   );
 };

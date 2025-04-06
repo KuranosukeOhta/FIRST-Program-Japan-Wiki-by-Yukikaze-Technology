@@ -76,6 +76,22 @@ function generateTableOfContents(blocks: any[]) {
   });
 }
 
+// カテゴリリスト（実際のアプリではデータから取得）
+const categories = [
+  { id: "1", name: "カテゴリ1" },
+  { id: "2", name: "カテゴリ2" },
+  { id: "3", name: "カテゴリ3" },
+  { id: "4", name: "カテゴリ4" },
+  { id: "5", name: "カテゴリ5" }
+];
+
+// 著者リスト（ダミーデータ）
+const authors = Array(6).fill(null).map((_, i) => ({
+  id: `author-${i+1}`,
+  name: "著者名",
+  avatar: null
+}));
+
 export default async function WikiDetailPage({ params }: PageProps) {
   const pageData = await fetchPageData(params.id);
   
@@ -100,103 +116,163 @@ export default async function WikiDetailPage({ params }: PageProps) {
   // const relatedPages = await getRelatedPages(params.id, pageData.category);
   
   return (
-    <div className="zenn-article-container">
-      {/* 左サイドバー - シェアボタン */}
-      <div className="zenn-share-column">
-        <div className="sticky top-24">
-          <button className="zenn-share-button mb-3">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
-            </svg>
-            <span className="zenn-like-count">0</span>
-          </button>
-          <button className="zenn-share-button">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-            </svg>
-          </button>
+    <div>
+      {/* ヘッダーエリア */}
+      <div className="bg-gray-200 p-4">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <h1 className="text-2xl font-bold">
+            <Link href="/">FIRST Program Japan Wiki</Link>
+          </h1>
+          <div className="w-80 bg-gray-200 p-3">
+            <div className="bg-gray-100 p-2 rounded text-center">Wiki全体の検索バー</div>
+          </div>
         </div>
       </div>
       
-      {/* メインコンテンツエリア */}
-      <div className="zenn-article-content-wrapper">
-        <article className="zenn-article-content">
-          {/* 記事ヘッダー */}
-          <header className="zenn-article-header">
-            <h1 className="zenn-article-title">{page.title}</h1>
-            <div className="zenn-article-meta">
-              {page.category && (
-                <Link href={`/category/${page.category}`} className="zenn-tag">
-                  {page.category}
-                </Link>
-              )}
-              <time dateTime={page.last_edited_time}>
-                {new Date(page.last_edited_time).toLocaleDateString('ja-JP')}
-              </time>
-            </div>
-          </header>
-          
-          {/* 記事のメインコンテンツ */}
-          <div className="prose max-w-none">
-            <NotionContent blocks={blocks || []} />
-          </div>
-        </article>
+      {/* ナビゲーションメニュー */}
+      <div className="bg-gray-300 p-3">
+        <div className="max-w-7xl mx-auto flex space-x-6">
+          <Link href="/" className="text-gray-800 hover:underline">ページを見る</Link>
+          <Link href="/about" className="text-gray-800 hover:underline">Wikiについて</Link>
+          <Link href="/team" className="text-gray-800 hover:underline">運営団体について</Link>
+          <Link href="/edit" className="text-gray-800 hover:underline">記事を書く</Link>
+          <Link href="/contact" className="text-gray-800 hover:underline">お問い合わせ</Link>
+        </div>
       </div>
       
-      {/* 右サイドバー - 目次 */}
-      <div className="zenn-sidebar">
-        <div className="sticky top-24">
-          {toc.length > 0 && (
-            <div className="zenn-toc">
-              <h3 className="zenn-toc-heading">目次</h3>
-              <ul>
-                {toc.map((item) => (
-                  <li key={item.id} style={{ paddingLeft: `${(item.level - 1) * 1}rem` }}>
-                    <a href={`#${item.id}`}>{item.text}</a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-          
-          {/* 著者情報 */}
-          <div className="zenn-author-card mt-6">
-            <div className="zenn-author-avatar">
-              {/* デフォルトアバター */}
-              <svg viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="40">
-                <circle cx="18" cy="18" r="18" fill="#EDF2F7" />
-                <path fillRule="evenodd" clipRule="evenodd" d="M18 9C14.6863 9 12 11.6863 12 15C12 18.3137 14.6863 21 18 21C21.3137 21 24 18.3137 24 15C24 11.6863 21.3137 9 18 9ZM18 27C13.0294 27 9 25.0902 9 22.5C9 19.9098 13.0294 18 18 18C22.9706 18 27 19.9098 27 22.5C27 25.0902 22.9706 27 18 27Z" fill="#A0AEC0" />
-              </svg>
-            </div>
-            <div className="zenn-author-info">
-              <h3 className="zenn-author-name">FIRST Program Japan Wiki</h3>
-              <p className="zenn-author-bio">
-                FIRSTプログラムに関する情報を共有するウィキサイトです。
-              </p>
-              <button className="zenn-follow-button">
-                フォロー
-              </button>
+      {/* メインコンテンツエリア - Figmaデザインのレイアウト */}
+      <div className="max-w-7xl mx-auto mt-4 flex">
+        {/* 左サイドバー - カテゴリと記事著者 */}
+        <div className="w-64 flex-shrink-0">
+          {/* カテゴリメニュー */}
+          <div className="bg-yellow-300 p-4 mb-4">
+            <ul>
+              {categories.map((category) => (
+                <li key={category.id} className="mb-1">
+                  <Link href={`/category/${category.id}`} className="block text-gray-800 hover:underline">
+                    {category.name}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-4 text-center text-gray-700 text-sm">
+              ※本当は何もない部分、カテゴリメニューは上に表示される
             </div>
           </div>
           
-          {/* 関連記事セクションを無効化 */}
-          {/*
-          {relatedPages && relatedPages.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-lg font-bold mb-4">関連記事</h3>
-              <ul className="space-y-3">
-                {relatedPages.map(relatedPage => (
-                  <li key={relatedPage.id}>
-                    <Link href={`/wiki/${relatedPage.id}`} className="block hover:bg-gray-50 p-2 rounded">
-                      <h4 className="font-medium text-blue-600">{relatedPage.title}</h4>
-                      <p className="text-sm text-gray-600 mt-1">{relatedPage.description?.substring(0, 60)}...</p>
-                    </Link>
+          {/* 記事検索バー */}
+          <div className="bg-gray-200 p-3 mb-4 rounded">
+            <span className="block text-center">記事検索バー</span>
+          </div>
+          
+          {/* 並び替えメニュー */}
+          <div className="bg-gray-200 p-2 mb-4 flex items-center justify-between rounded">
+            <span className="text-sm">並び替えメニュー</span>
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
+          </div>
+          
+          {/* 記事著者リスト */}
+          {authors.map((author) => (
+            <div key={author.id} className="bg-gray-200 p-3 mb-4 flex rounded">
+              <div className="w-1/4 mr-2">
+                <div className="bg-blue-400 rounded-full w-10 h-10"></div>
+              </div>
+              <div className="flex-1">
+                <p className="text-center mb-2 text-sm">記事者名</p>
+                <p className="text-blue-500 text-sm text-center">著者名</p>
+              </div>
+            </div>
+          ))}
+        </div>
+        
+        {/* メインコンテンツ */}
+        <div className="flex-1 mx-6">
+          <div className="bg-gray-200 p-3 mb-4 rounded">
+            <h1 className="text-2xl font-bold text-center">{page.title}</h1>
+          </div>
+          
+          <div className="bg-gray-200 p-6 rounded">
+            {/* 実際のNotion APIから取得したデータを表示 */}
+            <div className="prose max-w-none">
+              <NotionContent blocks={blocks || []} />
+            </div>
+            
+            {/* 静的なデモコンテンツ（実データがない場合のフォールバック） */}
+            {(!blocks || blocks.length === 0) && (
+              <>
+                <h2 className="text-xl font-bold mb-4">はじめに</h2>
+                <p className="mb-4">
+                  先日、Next.jsの勉強会で、データベース連携の実装について取り上げました 🔄
+                </p>
+                <ul className="list-disc ml-6 mb-4">
+                  <li className="mb-2">Supabase</li>
+                  <li className="mb-2">Firebase</li>
+                </ul>
+                <p className="mb-4">
+                  上記などは、有名でしょうか。<br />
+                  自前での構築不要で、簡単に DB を導入できるサービスは、新規プロダクトの立ち上げにおいて、便利です。<br />
+                  その中でも、今回はNeon DB について調査したので、基礎的な内容をまとめました！
+                </p>
+                <p className="mb-4">
+                  時間の節約になれば、嬉しいです 🙌
+                </p>
+                <h2 className="text-xl font-bold mb-4">Neon（旧 Vercel PostgreSQL）とは？</h2>
+                <p className="mb-4">
+                  Neon は、サーバーレスで設計された PostgreSQL データベースサービスです。<br />
+                  簡単に、DB を構築し、アプリに連携することができます！
+                </p>
+                <p className="mb-4">特徴は、：</p>
+                <ul className="list-disc ml-6 mb-4">
+                  <li className="mb-2">サーバーレスアーキテクチャ: インフラ管理が不要で、使用した分だけ支払う（無料から OK）</li>
+                  <li className="mb-2">Git 風のブランチ機能: 本番 DB から開発・テスト用の環境を瞬時に作成可能</li>
+                  <li className="mb-2">スケーラビリティ: 使用量に応じて自動的にスケール</li>
+                  <li className="mb-2">高速: 最新のストレージ技術による高速なパフォーマンス</li>
+                  <li className="mb-2">Vercel 統合: Vercel プロジェクトとの簡単な連携</li>
+                </ul>
+                <p className="mb-4">
+                  以前は、Next.js の公式チュートリアルにも登場する、「Vercel PostgreSQL」として、提供されていました。<br />
+                  現在は、Neon ブランドとして独立し、Vercel の marketplace から利用できます！
+                </p>
+              </>
+            )}
+          </div>
+        </div>
+        
+        {/* 右サイドバー - 著者情報と目次 */}
+        <div className="w-64 flex-shrink-0">
+          {/* 著者情報 */}
+          <div className="bg-gray-200 p-4 mb-4 rounded">
+            <div className="flex flex-col items-center mb-4">
+              <div className="bg-blue-400 rounded-full w-16 h-16 mb-2"></div>
+              <h3 className="text-lg font-bold">著者名</h3>
+            </div>
+            <p className="text-center text-sm mb-4">プロフィール内容</p>
+          </div>
+          
+          {/* 目次 */}
+          <div className="bg-gray-200 p-4 rounded">
+            <h3 className="text-lg font-bold mb-4">目次</h3>
+            {toc.length > 0 ? (
+              <ul className="space-y-2">
+                {toc.map((item) => (
+                  <li key={item.id} style={{ paddingLeft: `${(item.level - 1) * 0.75}rem` }}>
+                    <a href={`#${item.id}`} className="text-gray-800 hover:underline text-sm">
+                      • {item.text}
+                    </a>
                   </li>
                 ))}
               </ul>
-            </div>
-          )}
-          */}
+            ) : (
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-800 hover:underline text-sm">• はじめに</a></li>
+                <li><a href="#" className="text-gray-800 hover:underline text-sm">• .</a></li>
+                <li><a href="#" className="text-gray-800 hover:underline text-sm">• .</a></li>
+                <li><a href="#" className="text-gray-800 hover:underline text-sm">• .</a></li>
+              </ul>
+            )}
+          </div>
         </div>
       </div>
     </div>

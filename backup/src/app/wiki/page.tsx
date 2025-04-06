@@ -113,7 +113,7 @@ export default async function WikiPage({
   return (
     <div>
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2">ウィキページ一覧</h1>
+        <h1 className="text-3xl font-bold text-gray-800 mb-2">ページ一覧</h1>
         <p className="text-gray-600">
           全{result.total}件中 {(currentPage - 1) * result.limit + 1}～
           {Math.min(currentPage * result.limit, result.total)}件表示

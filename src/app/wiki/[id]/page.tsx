@@ -1,7 +1,7 @@
 import React from "react";
 import { Metadata } from "next";
 import NotionContent from "@/components/NotionContent";
-import { getPageDetail } from "@/lib/data";
+import { getPageDetail, getCategories } from "@/lib/data";
 // 関連ページの機能を削除
 // import { getRelatedPages } from "@/lib/related";
 // import { NotionPage } from "@/types";
@@ -76,24 +76,15 @@ function generateTableOfContents(blocks: any[]) {
   });
 }
 
-// カテゴリリスト（実際のアプリではデータから取得）
-const categories = [
-  { id: "1", name: "カテゴリ1" },
-  { id: "2", name: "カテゴリ2" },
-  { id: "3", name: "カテゴリ3" },
-  { id: "4", name: "カテゴリ4" },
-  { id: "5", name: "カテゴリ5" }
-];
-
 // 著者リスト（ダミーデータ）
-const authors = Array(6).fill(null).map((_, i) => ({
-  id: `author-${i+1}`,
-  name: "著者名",
-  avatar: null
-}));
+const authors = [
+  { id: "1", name: "山田太郎", avatar: null },
+  { id: "2", name: "佐藤花子", avatar: null }
+];
 
 export default async function WikiDetailPage({ params }: PageProps) {
   const pageData = await fetchPageData(params.id);
+  const categories = await getCategories();
   
   if (!pageData) {
     return (
@@ -116,161 +107,134 @@ export default async function WikiDetailPage({ params }: PageProps) {
   // const relatedPages = await getRelatedPages(params.id, pageData.category);
   
   return (
-    <div>
-      {/* ヘッダーエリア */}
-      <div className="bg-gray-200 p-4">
-        <div className="max-w-7xl mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">
-            <Link href="/">FIRST Program Japan Wiki</Link>
-          </h1>
-          <div className="w-80 bg-gray-200 p-3">
-            <div className="bg-gray-100 p-2 rounded text-center">Wiki全体の検索バー</div>
+    <div className="bg-gray-50">
+      {/* ナビゲーションメニュー（グローバルヘッダーの下に追加） */}
+      <div className="bg-white shadow-sm border-b">
+        <div className="max-w-7xl mx-auto px-4 py-2">
+          <div className="flex items-center space-x-6">
+            <div className="relative group">
+              <Link href="/wiki" className="text-gray-700 hover:text-blue-600 font-medium py-2 flex items-center">
+                ページを見る
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </Link>
+              
+              {/* カテゴリメニュー（ホバー時に表示） */}
+              <div className="absolute left-0 mt-1 w-48 bg-white rounded-md shadow-lg border border-gray-200 hidden group-hover:block z-10">
+                <div className="py-2">
+                  {categories && categories.length > 0 ? (
+                    <>
+                      {categories.map((category: string) => (
+                        <Link 
+                          key={category} 
+                          href={`/wiki?category=${encodeURIComponent(category)}`}
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-600"
+                        >
+                          {category}
+                        </Link>
+                      ))}
+                    </>
+                  ) : (
+                    <span className="block px-4 py-2 text-sm text-gray-500">カテゴリがありません</span>
+                  )}
+                </div>
+              </div>
+            </div>
+            <Link href="/about" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+              Wikiについて
+            </Link>
+            <Link href="/team" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+              運営団体について
+            </Link>
+            <Link href="/edit" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+              記事を書く
+            </Link>
+            <Link href="/contact" className="text-gray-700 hover:text-blue-600 font-medium py-2">
+              お問い合わせ
+            </Link>
           </div>
         </div>
       </div>
       
-      {/* ナビゲーションメニュー */}
-      <div className="bg-gray-300 p-3">
-        <div className="max-w-7xl mx-auto flex space-x-6">
-          <Link href="/" className="text-gray-800 hover:underline">ページを見る</Link>
-          <Link href="/about" className="text-gray-800 hover:underline">Wikiについて</Link>
-          <Link href="/team" className="text-gray-800 hover:underline">運営団体について</Link>
-          <Link href="/edit" className="text-gray-800 hover:underline">記事を書く</Link>
-          <Link href="/contact" className="text-gray-800 hover:underline">お問い合わせ</Link>
-        </div>
-      </div>
-      
-      {/* メインコンテンツエリア - Figmaデザインのレイアウト */}
-      <div className="max-w-7xl mx-auto mt-4 flex">
-        {/* 左サイドバー - カテゴリと記事著者 */}
-        <div className="w-64 flex-shrink-0">
-          {/* カテゴリメニュー */}
-          <div className="bg-yellow-300 p-4 mb-4">
-            <ul>
-              {categories.map((category) => (
-                <li key={category.id} className="mb-1">
-                  <Link href={`/category/${category.id}`} className="block text-gray-800 hover:underline">
-                    {category.name}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-            <div className="mt-4 text-center text-gray-700 text-sm">
-              ※本当は何もない部分、カテゴリメニューは上に表示される
-            </div>
-          </div>
-          
-          {/* 記事検索バー */}
-          <div className="bg-gray-200 p-3 mb-4 rounded">
-            <span className="block text-center">記事検索バー</span>
-          </div>
-          
-          {/* 並び替えメニュー */}
-          <div className="bg-gray-200 p-2 mb-4 flex items-center justify-between rounded">
-            <span className="text-sm">並び替えメニュー</span>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </div>
-          
-          {/* 記事著者リスト */}
-          {authors.map((author) => (
-            <div key={author.id} className="bg-gray-200 p-3 mb-4 flex rounded">
-              <div className="w-1/4 mr-2">
-                <div className="bg-blue-400 rounded-full w-10 h-10"></div>
-              </div>
-              <div className="flex-1">
-                <p className="text-center mb-2 text-sm">記事者名</p>
-                <p className="text-blue-500 text-sm text-center">著者名</p>
-              </div>
-            </div>
-          ))}
-        </div>
-        
-        {/* メインコンテンツ */}
-        <div className="flex-1 mx-6">
-          <div className="bg-gray-200 p-3 mb-4 rounded">
-            <h1 className="text-2xl font-bold text-center">{page.title}</h1>
-          </div>
-          
-          <div className="bg-gray-200 p-6 rounded">
-            {/* 実際のNotion APIから取得したデータを表示 */}
-            <div className="prose max-w-none">
-              <NotionContent blocks={blocks || []} />
-            </div>
-            
-            {/* 静的なデモコンテンツ（実データがない場合のフォールバック） */}
-            {(!blocks || blocks.length === 0) && (
-              <>
-                <h2 className="text-xl font-bold mb-4">はじめに</h2>
-                <p className="mb-4">
-                  先日、Next.jsの勉強会で、データベース連携の実装について取り上げました 🔄
-                </p>
-                <ul className="list-disc ml-6 mb-4">
-                  <li className="mb-2">Supabase</li>
-                  <li className="mb-2">Firebase</li>
-                </ul>
-                <p className="mb-4">
-                  上記などは、有名でしょうか。<br />
-                  自前での構築不要で、簡単に DB を導入できるサービスは、新規プロダクトの立ち上げにおいて、便利です。<br />
-                  その中でも、今回はNeon DB について調査したので、基礎的な内容をまとめました！
-                </p>
-                <p className="mb-4">
-                  時間の節約になれば、嬉しいです 🙌
-                </p>
-                <h2 className="text-xl font-bold mb-4">Neon（旧 Vercel PostgreSQL）とは？</h2>
-                <p className="mb-4">
-                  Neon は、サーバーレスで設計された PostgreSQL データベースサービスです。<br />
-                  簡単に、DB を構築し、アプリに連携することができます！
-                </p>
-                <p className="mb-4">特徴は、：</p>
-                <ul className="list-disc ml-6 mb-4">
-                  <li className="mb-2">サーバーレスアーキテクチャ: インフラ管理が不要で、使用した分だけ支払う（無料から OK）</li>
-                  <li className="mb-2">Git 風のブランチ機能: 本番 DB から開発・テスト用の環境を瞬時に作成可能</li>
-                  <li className="mb-2">スケーラビリティ: 使用量に応じて自動的にスケール</li>
-                  <li className="mb-2">高速: 最新のストレージ技術による高速なパフォーマンス</li>
-                  <li className="mb-2">Vercel 統合: Vercel プロジェクトとの簡単な連携</li>
-                </ul>
-                <p className="mb-4">
-                  以前は、Next.js の公式チュートリアルにも登場する、「Vercel PostgreSQL」として、提供されていました。<br />
-                  現在は、Neon ブランドとして独立し、Vercel の marketplace から利用できます！
-                </p>
-              </>
-            )}
-          </div>
-        </div>
-        
-        {/* 右サイドバー - 著者情報と目次 */}
-        <div className="w-64 flex-shrink-0">
-          {/* 著者情報 */}
-          <div className="bg-gray-200 p-4 mb-4 rounded">
+      {/* メインコンテンツエリア */}
+      <div className="max-w-7xl mx-auto px-4 py-8 flex flex-col md:flex-row">
+        {/* サイドバー（小画面ではメインコンテンツの上） */}
+        <div className="w-full md:w-64 md:flex-shrink-0 mb-6 md:mb-0 md:mr-8">
+          {/* 著者情報（最初に表示） */}
+          <div className="bg-white p-4 mb-4 rounded-lg shadow-sm border border-gray-200">
             <div className="flex flex-col items-center mb-4">
-              <div className="bg-blue-400 rounded-full w-16 h-16 mb-2"></div>
-              <h3 className="text-lg font-bold">著者名</h3>
+              <div className="bg-blue-500 rounded-full w-16 h-16 mb-2 flex items-center justify-center text-white text-2xl font-bold">
+                {page.authors && page.authors.length > 0 ? page.authors[0].substring(0, 1).toUpperCase() : "A"}
+              </div>
+              <h3 className="text-lg font-medium text-gray-800">
+                {page.authors && page.authors.length > 0 ? page.authors.join(', ') : "Wiki編集者"}
+              </h3>
             </div>
-            <p className="text-center text-sm mb-4">プロフィール内容</p>
+            <p className="text-center text-sm text-gray-600 mb-4">
+              FIRST Programに関する情報共有のためのウィキサイトです。
+            </p>
+            <div className="text-center">
+              <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                {page.category || "未分類"}
+              </span>
+            </div>
           </div>
           
           {/* 目次 */}
-          <div className="bg-gray-200 p-4 rounded">
-            <h3 className="text-lg font-bold mb-4">目次</h3>
-            {toc.length > 0 ? (
+          {toc.length > 0 && (
+            <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-200 sticky top-4">
+              <h3 className="text-lg font-medium text-gray-800 mb-4 flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h7" />
+                </svg>
+                目次
+              </h3>
               <ul className="space-y-2">
                 {toc.map((item) => (
                   <li key={item.id} style={{ paddingLeft: `${(item.level - 1) * 0.75}rem` }}>
-                    <a href={`#${item.id}`} className="text-gray-800 hover:underline text-sm">
-                      • {item.text}
+                    <a href={`#${item.id}`} className="text-gray-700 hover:text-blue-600 hover:underline text-sm flex items-center">
+                      <span className="w-2 h-2 rounded-full bg-blue-500 mr-2 flex-shrink-0"></span>
+                      {item.text}
                     </a>
                   </li>
                 ))}
               </ul>
-            ) : (
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-800 hover:underline text-sm">• はじめに</a></li>
-                <li><a href="#" className="text-gray-800 hover:underline text-sm">• .</a></li>
-                <li><a href="#" className="text-gray-800 hover:underline text-sm">• .</a></li>
-                <li><a href="#" className="text-gray-800 hover:underline text-sm">• .</a></li>
-              </ul>
+            </div>
+          )}
+        </div>
+        
+        {/* メインコンテンツ */}
+        <div className="flex-1">
+          {/* 記事タイトル */}
+          <div className="bg-white p-5 mb-6 rounded-lg shadow-sm border border-gray-200">
+            <h1 className="text-2xl md:text-3xl font-bold text-gray-800">{page.title}</h1>
+            <div className="flex items-center text-sm text-gray-500 mt-2">
+              <span className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                {new Date(page.last_edited_time).toLocaleDateString('ja-JP')}
+              </span>
+            </div>
+          </div>
+          
+          {/* 記事内容 */}
+          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200">
+            {/* 実際のNotion APIから取得したデータを表示 */}
+            <div className="prose prose-blue max-w-none">
+              <NotionContent blocks={blocks || []} />
+            </div>
+            
+            {/* データがない場合のフォールバック表示 */}
+            {(!blocks || blocks.length === 0) && (
+              <div className="text-center p-8 text-gray-500">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <p className="text-lg font-medium">コンテンツがありません</p>
+                <p className="mt-2">この記事にはまだ内容が追加されていません。</p>
+              </div>
             )}
           </div>
         </div>

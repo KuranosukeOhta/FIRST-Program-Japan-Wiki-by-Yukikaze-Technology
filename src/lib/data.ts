@@ -352,4 +352,50 @@ export async function getPageDetail(id: string) {
   console.error(`最大再試行回数(${maxRetries})に達しました。ページ詳細取得に失敗しました。ID: ${id}`);
   // エラー時はnullを返す（notFoundとなる）
   return null;
+}
+
+// カテゴリ一覧を取得
+export async function getCategories(): Promise<string[]> {
+  const maxRetries = 3;
+  let retryCount = 0;
+  
+  while (retryCount < maxRetries) {
+    try {
+      const supabase = createSupabaseClient();
+      
+      // カテゴリ一覧取得
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('notion_pages')
+        .select('category')
+        .not('category', 'is', null);
+      
+      if (categoryError) {
+        console.error(`カテゴリ一覧取得エラー (試行 ${retryCount + 1}/${maxRetries}):`, categoryError);
+        retryCount++;
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+        continue;
+      }
+      
+      // 重複なしのカテゴリリスト
+      const categories = Array.from(
+        new Set(categoryData.map(item => item.category).filter(Boolean))
+      );
+      
+      return categories as string[];
+    } catch (error) {
+      console.error(`カテゴリ一覧取得中の例外 (試行 ${retryCount + 1}/${maxRetries}):`, error);
+      retryCount++;
+      await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+    }
+  }
+  
+  console.error(`最大再試行回数(${maxRetries})に達しました。カテゴリ一覧取得に失敗しました。`);
+  
+  // 開発環境のみダミーデータを返す
+  if (process.env.NODE_ENV === 'development') {
+    return ['FRC', 'FTC', 'FLL', 'チュートリアル', 'イベント', 'その他'];
+  }
+  
+  // エラー時は空配列を返す
+  return [];
 } 

@@ -169,63 +169,47 @@ export default async function WikiDetailPage({ params }: PageProps) {
       
       {/* メインコンテンツエリア - 3カラムレイアウト */}
       <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* 左サイドバー - 記事検索と記事著者リスト */}
+        {/* 左サイドバー - 著者情報 */}
         <div className="md:col-span-2">
-          {/* 記事検索バー */}
-          <div className="bg-gray-300 p-4 mb-4 rounded">
-            <h3 className="text-center text-gray-700 font-medium mb-2">記事検索バー</h3>
-            <div className="relative">
-              <input 
-                type="text" 
-                className="w-full bg-white rounded px-3 py-2 pr-8 text-sm"
-                placeholder="記事を検索..."
-              />
-              <Search className="absolute right-2 top-2 h-4 w-4 text-gray-400" />
-            </div>
-          </div>
-          
-          {/* 並び替えメニュー */}
-          <div className="bg-gray-300 p-3 mb-4 rounded flex items-center justify-between">
-            <span className="text-sm text-gray-700">並び替えメニュー</span>
-            <Menu className="h-4 w-4 text-gray-700" />
-          </div>
-          
-          {/* 記事著者リスト - 実データから表示 */}
-          {page.authors && page.authors.length > 0 ? (
-            // 実際の著者データがある場合
-            page.authors.map((author, index) => (
-              <div key={index} className="bg-gray-300 p-3 mb-4 rounded flex">
-                <div className="mr-3">
-                  <div className="bg-blue-400 rounded-full w-10 h-10 flex items-center justify-center text-white text-sm font-medium">
-                    {typeof author === 'string' ? author.substring(0, 1).toUpperCase() : 'A'}
+          {/* 記事著者情報 */}
+          <div className="bg-white shadow rounded p-4">
+            <h3 className="text-center text-gray-700 font-medium mb-3">著者情報</h3>
+            
+            {page.authors && page.authors.length > 0 ? (
+              // 実際の著者データがある場合
+              <div>
+                {page.authors.map((author, index) => (
+                  <div key={index} className="mb-3 flex items-center">
+                    <div className="bg-blue-400 rounded-full w-8 h-8 flex items-center justify-center text-white text-sm font-medium mr-2">
+                      {typeof author === 'string' ? author.substring(0, 1).toUpperCase() : 'A'}
+                    </div>
+                    <span className="text-sm text-gray-800">
+                      {typeof author === 'string' ? author : 'Unknown'}
+                    </span>
                   </div>
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium mb-1">記事者名</p>
-                  <p className="text-xs text-blue-500">{typeof author === 'string' ? author : 'Unknown'}</p>
+                ))}
+                <div className="text-xs text-gray-500 mt-2 text-center">
+                  最終更新: {new Date(page.last_edited_time).toLocaleString('ja-JP', { 
+                    year: 'numeric', month: '2-digit', day: '2-digit'
+                  })}
                 </div>
               </div>
-            ))
-          ) : (
-            // 著者データがない場合のダミー表示
-            <div className="bg-gray-300 p-3 mb-4 rounded flex">
-              <div className="mr-3">
-                <div className="bg-blue-400 rounded-full w-10 h-10 flex items-center justify-center text-white text-sm font-medium">
+            ) : (
+              // 著者データがない場合の表示
+              <div className="flex items-center justify-center flex-col">
+                <div className="bg-blue-400 rounded-full w-10 h-10 flex items-center justify-center text-white text-lg font-medium mb-2">
                   W
                 </div>
+                <p className="text-sm text-center">Wiki編集者</p>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium mb-1">記事者名</p>
-                <p className="text-xs text-blue-500">Wiki編集者</p>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
         
         {/* 中央カラム - 記事内容 */}
         <div className="md:col-span-7">
           {/* 記事タイトル */}
-          <div className="bg-gray-300 p-5 mb-6 rounded">
+          <div className="bg-white shadow p-5 mb-6 rounded">
             <h1 className="text-2xl md:text-3xl font-bold text-center">{page.title}</h1>
             {/* 執筆日と更新日を追加 */}
             <div className="mt-3 text-sm text-gray-600 text-center">
@@ -240,7 +224,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
           </div>
           
           {/* 記事内容 */}
-          <div className="bg-gray-300 p-6 rounded">
+          <div className="bg-white shadow p-6 rounded">
             {/* 実際のNotion APIから取得したデータを表示 */}
             <div className="prose prose-blue max-w-none">
               {/* 目次のアンカーリンクのためにheadingIdをブロックに追加 */}
@@ -270,28 +254,8 @@ export default async function WikiDetailPage({ params }: PageProps) {
           </div>
         </div>
         
-        {/* 右サイドバー - 著者情報と目次 */}
+        {/* 右サイドバー - 目次 */}
         <div className="md:col-span-3">
-          {/* 著者情報 */}
-          <div className="bg-gray-300 p-4 mb-4 rounded">
-            <div className="flex flex-col items-center mb-4">
-              <div className="bg-blue-400 rounded-full w-16 h-16 mb-2 flex items-center justify-center text-white text-2xl font-bold">
-                {page.authors && page.authors.length > 0 ? page.authors[0].substring(0, 1).toUpperCase() : "A"}
-              </div>
-              <h3 className="text-lg font-medium text-center">
-                {page.authors && page.authors.length > 0 ? page.authors.join(', ') : "Wiki編集者"}
-              </h3>
-            </div>
-            <div className="text-center">
-              <p className="text-gray-600 text-sm">記事の執筆者</p>
-              <p className="text-xs text-gray-500 mt-1">
-                最終更新: {new Date(page.last_edited_time).toLocaleString('ja-JP', { 
-                  year: 'numeric', month: '2-digit', day: '2-digit'
-                })}
-              </p>
-            </div>
-          </div>
-          
           {/* 目次 - クライアントコンポーネント化（目次がある場合のみ表示） */}
           {toc.length > 0 && <TableOfContents toc={toc} />}
         </div>

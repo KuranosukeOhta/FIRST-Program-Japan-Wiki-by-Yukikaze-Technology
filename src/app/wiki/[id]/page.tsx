@@ -168,7 +168,7 @@ export function RelatedArticlesSection({ relatedPages }: RelatedArticlesSectionP
       
       {/* 関連記事一覧 */}
       <div className="bg-blue-50 p-3 mb-4 rounded shadow-sm">
-        <h3 className="text-center text-gray-700 font-medium mb-3">関連記事</h3>
+        <h3 className="text-center text-gray-700 font-medium mb-3">カテゴリの他の記事</h3>
         
         {sortedPages && sortedPages.length > 0 ? (
           <div className="space-y-3">

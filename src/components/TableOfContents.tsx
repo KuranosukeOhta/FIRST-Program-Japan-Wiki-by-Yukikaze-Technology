@@ -29,7 +29,7 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
   };
 
   return (
-    <div className="bg-gray-300 p-4 rounded">
+    <div className="bg-blue-50 p-4 rounded shadow-sm">
       <h3 className="text-lg font-medium mb-4">目次</h3>
       <ul className="space-y-2">
         {toc.map((item) => (

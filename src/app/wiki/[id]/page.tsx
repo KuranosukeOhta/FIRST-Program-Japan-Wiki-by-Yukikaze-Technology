@@ -136,7 +136,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
   // const relatedPages = await getRelatedPages(params.id, pageData.category);
   
   return (
-    <div className="bg-gray-50">
+    <div className="bg-white">
       {/* ナビゲーションメニュー（グローバルヘッダーの下に追加） */}
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 py-2">
@@ -197,7 +197,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
           <SortMenu />
           
           {/* 関連記事一覧 - 同じカテゴリの他の記事を表示 */}
-          <div className="bg-gray-300 p-3 mb-4 rounded">
+          <div className="bg-blue-50 p-3 mb-4 rounded shadow-sm">
             <h3 className="text-center text-gray-700 font-medium mb-3">関連記事</h3>
             
             {pageData.relatedPages && pageData.relatedPages.length > 0 ? (
@@ -228,7 +228,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
           </div>
           
           {/* 最新の記事一覧 */}
-          <div className="bg-gray-300 p-3 mb-4 rounded">
+          <div className="bg-blue-50 p-3 mb-4 rounded shadow-sm">
             <h3 className="text-center text-gray-700 font-medium mb-3">最近更新された記事</h3>
             
             {latestPages && latestPages.length > 0 ? (
@@ -260,7 +260,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
         {/* 中央カラム - 記事内容 */}
         <div className="md:col-span-7">
           {/* 記事タイトル */}
-          <div className="bg-gray-300 p-5 mb-6 rounded">
+          <div className="bg-blue-50 p-5 mb-6 rounded shadow-sm">
             <h1 className="text-2xl md:text-3xl font-bold text-center">{page.title}</h1>
             {/* 執筆日と更新日を追加 */}
             <div className="mt-3 text-sm text-gray-600 text-center">
@@ -275,7 +275,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
           </div>
           
           {/* 記事内容 */}
-          <div className="bg-gray-300 p-6 rounded">
+          <div className="bg-white p-6 rounded shadow border border-gray-100">
             {/* 実際のNotion APIから取得したデータを表示 */}
             <div className="prose prose-blue max-w-none">
               {/* 目次のアンカーリンクのためにheadingIdをブロックに追加 */}
@@ -308,7 +308,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
         {/* 右サイドバー - 著者情報と目次 */}
         <div className="md:col-span-3">
           {/* 著者情報 */}
-          <div className="bg-gray-300 p-4 mb-4 rounded">
+          <div className="bg-blue-50 p-4 mb-4 rounded shadow-sm">
             <div className="flex flex-col items-center mb-4">
               <div className="bg-blue-400 rounded-full w-16 h-16 mb-2 flex items-center justify-center text-white text-2xl font-bold">
                 {page.authors && Array.isArray(page.authors) && page.authors.length > 0 && typeof page.authors[0] === 'string' 

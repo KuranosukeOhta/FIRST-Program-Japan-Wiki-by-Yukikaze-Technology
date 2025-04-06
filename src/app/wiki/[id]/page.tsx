@@ -265,9 +265,9 @@ export default async function WikiDetailPage({ params }: PageProps) {
           <div className="bg-gray-300 p-4 mb-4 rounded">
             <div className="flex flex-col items-center mb-4">
               <div className="bg-blue-400 rounded-full w-16 h-16 mb-2 flex items-center justify-center text-white text-2xl font-bold">
-                {page.authors && Array.isArray(page.authors) && page.authors.length > 0 && typeof page.authors[0] === 'string' 
-                  ? page.authors[0].substring(0, 1).toUpperCase() 
-                  : "A"}
+                {page.authors && Array.isArray(page.authors) && page.authors.length > 0 && typeof page.authors[0] === 'string' // 著者が存在し、かつ最初の著者が文字列である場合
+                  ? page.authors[0].substring(0, 1).toUpperCase()  // 最初の文字を大文字に変換
+                  : "👤"} // 著者が存在しない場合は"👤"を表示
               </div>
               <h3 className="text-lg font-medium text-center">
                 {page.authors && Array.isArray(page.authors) && page.authors.length > 0 

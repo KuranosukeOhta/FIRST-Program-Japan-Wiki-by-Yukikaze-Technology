@@ -292,6 +292,21 @@ export async function getPageDetail(id: string) {
         return null;
       }
       
+      // デバッグ: authorsフィールドの詳細をログ出力
+      console.log('Authors raw data:', page.authors);
+      console.log('Authors type:', typeof page.authors);
+      console.log('Is Array:', Array.isArray(page.authors));
+      if (page.authors && typeof page.authors === 'string') {
+        console.log('Attempting to parse authors as JSON string');
+        try {
+          const parsedAuthors = JSON.parse(page.authors);
+          console.log('Parsed authors:', parsedAuthors);
+          page.authors = parsedAuthors;
+        } catch (e) {
+          console.error('Failed to parse authors string:', e);
+        }
+      }
+      
       // ブロック（コンテンツ）情報を取得
       const { data: blocks, error: blocksError } = await supabase
         .from('notion_blocks')
@@ -333,7 +348,27 @@ export async function getPageDetail(id: string) {
       const enhancedPage = {
         ...page,
         last_edited_time: page.last_edited_time || page.created_time, // last_edited_timeがない場合はcreated_timeを使用
-        authors: Array.isArray(page.authors) ? page.authors : [],
+        authors: (() => {
+          // authorsフィールドの処理
+          if (!page.authors) return [];
+          
+          // すでに配列なら、そのまま返す
+          if (Array.isArray(page.authors)) return page.authors;
+          
+          // JSON文字列の場合はパースを試みる
+          if (typeof page.authors === 'string') {
+            try {
+              const parsed = JSON.parse(page.authors);
+              return Array.isArray(parsed) ? parsed : [page.authors];
+            } catch (e) {
+              console.error('Failed to parse authors as JSON:', e);
+              return [page.authors]; // パースに失敗した場合は文字列として扱う
+            }
+          }
+          
+          // その他の型の場合は空配列
+          return [];
+        })(),
         status: page.status || '未設定'
       };
       

@@ -15,7 +15,28 @@ const notoSansJP = Noto_Sans_JP({
 
 export const metadata: Metadata = {
   title: "FIRST Program Japan Wiki",
-  description: "FIRSTプログラムに関する情報共有のためのウィキサイトです。",
+  description: "FIRSTプログラムに関する情報共有のためのウィキサイトです。FRC、FTC、FLLなどの競技情報やチームビルディング、プログラミング、メカニカル設計などの技術的なリソースを提供しています。",
+  keywords: ["FIRST", "ロボティクス", "FRC", "FTC", "FLL", "STEM教育", "競技ロボット", "技術学習"],
+  authors: [{ name: "ユキカゼテクノロジー" }],
+  creator: "FIRST Program Japan Wiki運営チーム",
+  publisher: "ユキカゼテクノロジー",
+  openGraph: {
+    title: "FIRST Program Japan Wiki",
+    description: "FIRSTプログラムに関する総合的な情報共有プラットフォーム",
+    url: "https://wiki.firstjapan.jp",
+    siteName: "FIRST Program Japan Wiki",
+    locale: "ja_JP",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "FIRST Program Japan Wiki",
+    description: "FIRSTプログラムに関する情報共有のためのウィキサイトです。",
+  },
+  robots: {
+    index: true,
+    follow: true,
+  },
 };
 
 export default function RootLayout({

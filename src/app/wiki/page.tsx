@@ -4,6 +4,7 @@ import CategoryFilter from '@/components/CategoryFilter';
 import { getWikiPages } from '@/lib/data';
 // Navigationコンポーネントをインポート
 import Navigation from '@/components/Navigation';
+import { getCategoryClassNames } from '@/utils/categoryColors';
 
 // 型定義
 interface WikiPageResult {
@@ -43,6 +44,26 @@ async function fetchWikiPages(searchParams: { [key: string]: string | string[] |
       { id: '8', title: 'FRC 競技戦略', category: 'FRC', last_edited_time: '2024-01-08T16:40:00Z', authors: ['斎藤九郎'], created_time: '2023-12-10T16:40:00Z' },
       { id: '9', title: 'チーム運営ガイド', category: 'その他', last_edited_time: '2024-01-07T13:20:00Z', authors: ['小林十郎'], created_time: '2023-12-05T13:20:00Z' },
       { id: '10', title: 'スポンサー獲得術', category: 'その他', last_edited_time: '2024-01-06T09:10:00Z', authors: ['加藤十一郎', '松本十二郎'], created_time: '2023-12-01T09:10:00Z' },
+      { id: '11', title: 'FRC モーター選定ガイド', category: 'FRC', last_edited_time: '2024-01-05T14:15:00Z', authors: ['伊藤一郎'], created_time: '2023-11-25T14:15:00Z' },
+      { id: '12', title: 'プログラミング言語比較', category: 'チュートリアル', last_edited_time: '2024-01-04T10:45:00Z', authors: ['佐藤花子'], created_time: '2023-11-20T10:45:00Z' },
+      { id: '13', title: 'FTC センサー活用術', category: 'FTC', last_edited_time: '2024-01-03T13:30:00Z', authors: ['田中次郎'], created_time: '2023-11-15T13:30:00Z' },
+      { id: '14', title: 'FLL プログラミング基礎', category: 'FLL', last_edited_time: '2024-01-02T09:20:00Z', authors: ['山本三郎'], created_time: '2023-11-10T09:20:00Z' },
+      { id: '15', title: '地区大会レポート', category: 'イベント', last_edited_time: '2024-01-01T15:10:00Z', authors: ['鈴木四郎'], created_time: '2023-11-05T15:10:00Z' },
+      { id: '16', title: 'チームビルディング講座', category: 'その他', last_edited_time: '2023-12-31T11:05:00Z', authors: ['高橋五郎'], created_time: '2023-11-01T11:05:00Z' },
+      { id: '17', title: 'FRC 電子回路入門', category: 'FRC', last_edited_time: '2023-12-30T14:25:00Z', authors: ['佐藤六郎'], created_time: '2023-10-27T14:25:00Z' },
+      { id: '18', title: 'CAD設計チュートリアル', category: 'チュートリアル', last_edited_time: '2023-12-29T09:15:00Z', authors: ['田中七郎'], created_time: '2023-10-23T09:15:00Z' },
+      { id: '19', title: 'FTC 機構設計の秘訣', category: 'FTC', last_edited_time: '2023-12-28T16:35:00Z', authors: ['斎藤八郎'], created_time: '2023-10-19T16:35:00Z' },
+      { id: '20', title: 'FLL 審査対策', category: 'FLL', last_edited_time: '2023-12-27T10:40:00Z', authors: ['山本九郎'], created_time: '2023-10-15T10:40:00Z' },
+      { id: '21', title: '国際大会参加レポート', category: 'イベント', last_edited_time: '2023-12-26T13:20:00Z', authors: ['伊藤十郎'], created_time: '2023-10-10T13:20:00Z' },
+      { id: '22', title: '広報活動のコツ', category: 'その他', last_edited_time: '2023-12-25T15:30:00Z', authors: ['加藤一郎'], created_time: '2023-10-05T15:30:00Z' },
+      { id: '23', title: 'FRC プログラミング応用', category: 'FRC', last_edited_time: '2023-12-24T09:10:00Z', authors: ['鈴木二郎'], created_time: '2023-10-01T09:10:00Z' },
+      { id: '24', title: 'デバッグ技術入門', category: 'チュートリアル', last_edited_time: '2023-12-23T14:45:00Z', authors: ['高橋三郎'], created_time: '2023-09-25T14:45:00Z' },
+      { id: '25', title: 'FTC 競技戦略立案', category: 'FTC', last_edited_time: '2023-12-22T11:25:00Z', authors: ['佐藤四郎'], created_time: '2023-09-20T11:25:00Z' },
+      { id: '26', title: 'FLL プロジェクト発表のコツ', category: 'FLL', last_edited_time: '2023-12-21T13:15:00Z', authors: ['田中五郎'], created_time: '2023-09-15T13:15:00Z' },
+      { id: '27', title: 'ワークショップ開催レポート', category: 'イベント', last_edited_time: '2023-12-20T16:30:00Z', authors: ['山本六郎'], created_time: '2023-09-10T16:30:00Z' },
+      { id: '28', title: 'メンター指導法', category: 'その他', last_edited_time: '2023-12-19T10:20:00Z', authors: ['斎藤七郎'], created_time: '2023-09-05T10:20:00Z' },
+      { id: '29', title: 'FRC 機械加工技術', category: 'FRC', last_edited_time: '2023-12-18T15:40:00Z', authors: ['伊藤八郎'], created_time: '2023-09-01T15:40:00Z' },
+      { id: '30', title: 'バージョン管理入門', category: 'チュートリアル', last_edited_time: '2023-12-17T09:05:00Z', authors: ['加藤九郎'], created_time: '2023-08-25T09:05:00Z' },
     ];
     
     if (category) {
@@ -80,8 +101,8 @@ async function fetchWikiPages(searchParams: { [key: string]: string | string[] |
       pages: filteredPages,
       total: filteredPages.length,
       page,
-      limit: 10,
-      totalPages: Math.ceil(filteredPages.length / 10),
+      limit: 30,
+      totalPages: Math.ceil(filteredPages.length / 30),
       categories
     };
   }
@@ -92,7 +113,7 @@ async function fetchWikiPages(searchParams: { [key: string]: string | string[] |
       category,
       search,
       page,
-      limit: 10,
+      limit: 30, // 表示件数を30件に増やす
       sort // ソートパラメータを追加
     });
     
@@ -108,7 +129,7 @@ async function fetchWikiPages(searchParams: { [key: string]: string | string[] |
       ],
       total: 3,
       page: 1,
-      limit: 10,
+      limit: 30,
       totalPages: 1,
       categories: ['FRC', 'FTC', 'チュートリアル']
     };
@@ -223,31 +244,35 @@ export default async function WikiPage({
       {/* ページ一覧 */}
       {result.pages.length > 0 && (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {result.pages.map((page) => (
-              <Link key={page.id} href={`/wiki/${page.id}`}>
-                <div className="bg-white border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors h-full shadow-sm hover:shadow">
-                  <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
-                      {page.category || '未分類'}
-                    </span>
-                    <span className="text-xs text-gray-500">
-                      {new Date(page.last_edited_time).toLocaleString('ja-JP', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit'
-                      })}
-                    </span>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {result.pages.map((page) => {
+              const categoryClasses = getCategoryClassNames(page.category || '未分類');
+              
+              return (
+                <Link key={page.id} href={`/wiki/${page.id}`}>
+                  <div className="bg-white p-3 rounded-lg shadow-sm border border-gray-200 h-full hover:shadow-md transition-shadow">
+                    <div className="flex justify-between items-start gap-2 mb-2">
+                      <span className={`px-2 py-0.5 text-xs font-medium rounded ${categoryClasses}`}>
+                        {page.category || '未分類'}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        {new Date(page.last_edited_time).toLocaleString('ja-JP', {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit'
+                        })}
+                      </span>
+                    </div>
+                    <h2 className="text-base font-semibold text-gray-800 hover:text-blue-600 line-clamp-2">{page.title}</h2>
+                    {page.authors && Array.isArray(page.authors) && page.authors.length > 0 && (
+                      <p className="text-xs text-gray-600 mt-1 line-clamp-1">
+                        執筆者: {page.authors.filter(author => typeof author === 'string').join(', ')}
+                      </p>
+                    )}
                   </div>
-                  <h2 className="text-lg font-semibold text-gray-800 hover:text-blue-600 mb-1">{page.title}</h2>
-                  {page.authors && Array.isArray(page.authors) && page.authors.length > 0 && (
-                    <p className="text-xs text-gray-600 mt-1">
-                      執筆者: {page.authors.filter(author => typeof author === 'string').join(', ')}
-                    </p>
-                  )}
-                </div>
-              </Link>
-            ))}
+                </Link>
+              );
+            })}
           </div>
           
           {/* ページネーション */}

@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { ArrowRight, BookOpen, RefreshCw, Tag, Clock, Users, Award, Code, BookMarked, Lightbulb } from 'lucide-react';
 import HomeButtons from '@/components/HomeButtons';
 import { getStats, getLatestPages } from '@/lib/data';
+import { getCategoryClassNames } from '@/utils/categoryColors';
 
 // 型定義
 interface WikiStats {
@@ -221,12 +222,15 @@ export default async function Home() {
           <div className="border-t border-gray-100 pt-4">
             <h4 className="text-sm font-medium text-gray-500 mb-3">カテゴリ分布</h4>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-              {Object.entries(stats.categoryStats || {}).map(([category, count]) => (
-                <div key={category} className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded hover:bg-gray-100 transition-colors">
-                  <span className="font-medium">{category}</span>
-                  <span className="text-gray-600">{count as number}</span>
-                </div>
-              ))}
+              {Object.entries(stats.categoryStats || {}).map(([category, count]) => {
+                const categoryClasses = getCategoryClassNames(category);
+                return (
+                  <div key={category} className={`flex justify-between items-center px-3 py-2 rounded hover:opacity-90 transition-opacity ${categoryClasses.split(' ')[0]} ${categoryClasses.split(' ')[1].replace('800', '700')}`}>
+                    <span className="font-medium">{category}</span>
+                    <span>{count as number}</span>
+                  </div>
+                );
+              })}
             </div>
             {stats.timeSinceLastSync && (
               <p className="mt-4 text-sm text-gray-500 text-right">最終更新: {stats.timeSinceLastSync}</p>
@@ -285,35 +289,39 @@ export default async function Home() {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {latestPages.pages.map((page) => (
-            <Link key={page.id} href={`/wiki/${page.id}`}>
-              <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 h-full hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-3">
-                  <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
-                    {page.category || '未分類'}
-                  </span>
-                  <div className="flex items-center text-xs text-gray-500">
-                    <Clock className="w-3 h-3 mr-1" />
-                    {new Date(page.last_edited_time).toLocaleString('ja-JP', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
+          {latestPages.pages.map((page) => {
+            const categoryClasses = getCategoryClassNames(page.category || '未分類');
+            
+            return (
+              <Link key={page.id} href={`/wiki/${page.id}`}>
+                <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 h-full hover:shadow-md transition-shadow">
+                  <div className="flex justify-between items-start mb-3">
+                    <span className={`px-3 py-1 text-xs font-medium rounded ${categoryClasses}`}>
+                      {page.category || '未分類'}
+                    </span>
+                    <div className="flex items-center text-xs text-gray-500">
+                      <Clock className="w-3 h-3 mr-1" />
+                      {new Date(page.last_edited_time).toLocaleString('ja-JP', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </div>
                   </div>
+                  <h3 className="text-lg font-semibold text-gray-800 mb-2">{page.title}</h3>
+                  {page.authors && page.authors.length > 0 && (
+                    <div className="flex items-center text-xs text-gray-600 mt-2">
+                      <Users className="w-3 h-3 mr-1" />
+                      {page.authors.join(', ')}
+                    </div>
+                  )}
+                  <p className="text-gray-600 text-sm mt-3">詳細を見る...</p>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">{page.title}</h3>
-                {page.authors && page.authors.length > 0 && (
-                  <div className="flex items-center text-xs text-gray-600 mt-2">
-                    <Users className="w-3 h-3 mr-1" />
-                    {page.authors.join(', ')}
-                  </div>
-                )}
-                <p className="text-gray-600 text-sm mt-3">詳細を見る...</p>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            );
+          })}
         </div>
       </section>
 

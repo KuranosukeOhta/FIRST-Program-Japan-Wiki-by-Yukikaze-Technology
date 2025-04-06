@@ -3,59 +3,68 @@
 import React from 'react';
 import { Filter } from 'lucide-react';
 import Link from 'next/link';
+import { getCategoryClassNames } from '@/utils/categoryColors';
 
 interface CategoryFilterProps {
   currentCategory: string;
   categories: string[];
   clearCategoryLink: string;
-  categoryBasePath: string;
+  categoryBasePath?: string;
 }
 
-export default function CategoryFilter({
-  currentCategory,
-  categories,
+export default function CategoryFilter({ 
+  currentCategory, 
+  categories, 
   clearCategoryLink,
-  categoryBasePath
+  categoryBasePath = '/wiki?category=' 
 }: CategoryFilterProps) {
   return (
     <div className="w-full md:w-auto">
-      {currentCategory ? (
-        <div className="flex">
-          <div className="flex items-center bg-blue-50 border border-blue-200 rounded-l-lg px-4 py-3">
-            <Filter className="h-5 w-5 text-blue-600 mr-2" />
-            <span className="font-medium text-blue-800">{currentCategory}</span>
-          </div>
-          <Link
-            href={clearCategoryLink}
-            className="bg-white hover:bg-gray-50 text-red-600 border border-l-0 border-gray-300 rounded-r-lg py-3 px-4 flex items-center"
-          >
-            解除
-          </Link>
+      <div className="bg-white p-4 border border-gray-300 rounded-lg shadow-sm">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-medium text-gray-700">カテゴリで絞り込む</h3>
+          <Filter className="h-5 w-5 text-gray-400" />
         </div>
-      ) : (
-        <div className="relative inline-block w-full">
-          <select
-            id="categoryFilter"
-            className="w-full bg-white border border-gray-300 rounded-lg py-3 px-4 pr-8 appearance-none cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
-            defaultValue=""
-            onChange={(e) => {
-              if (e.target.value) {
-                window.location.href = `${categoryBasePath}${encodeURIComponent(e.target.value)}`;
-              }
-            }}
-          >
-            <option value="" disabled>カテゴリーで絞り込み</option>
-            {categories.map((category: string) => (
-              <option key={category} value={category}>
-                {category}
-              </option>
-            ))}
-          </select>
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-            <Filter className="h-5 w-5 text-gray-400" />
-          </div>
+        
+        <div className="flex flex-wrap gap-2">
+          {categories && categories.length > 0 ? (
+            <>
+              <Link
+                href={clearCategoryLink}
+                className={`px-3 py-1.5 text-sm rounded-full border ${
+                  !currentCategory 
+                    ? 'bg-blue-100 border-blue-300 text-blue-800 font-medium' 
+                    : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                すべて
+              </Link>
+              
+              {categories.map((category) => {
+                const isActive = currentCategory === category;
+                const categoryClasses = getCategoryClassNames(category);
+                const [bgClass, textClass] = categoryClasses.split(' ');
+                
+                return (
+                  <Link
+                    key={category}
+                    href={`${categoryBasePath}${encodeURIComponent(category)}`}
+                    className={`px-3 py-1.5 text-sm rounded-full border ${
+                      isActive 
+                        ? `${bgClass} border-${textClass.replace('text-', '').replace('800', '300')} ${textClass} font-medium` 
+                        : `bg-white border-gray-300 text-gray-600 hover:${bgClass.replace('bg-', 'bg-opacity-50 bg-')}`
+                    }`}
+                  >
+                    {category}
+                  </Link>
+                );
+              })}
+            </>
+          ) : (
+            <p className="text-sm text-gray-500">カテゴリがありません</p>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 } 

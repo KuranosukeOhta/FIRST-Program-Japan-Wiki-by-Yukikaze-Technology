@@ -8,3 +8,4 @@ alwaysApply: true
 - 一通りのエラーがないことが確認できたら、適切なコミットメッセージを考え、コミットして同期までを行なってください。
     - 以下はコミットメッセージの例です；
     fix: "use client"をBlockRendererとNotionContentコンポーネントに追加し、エクスポートを修正
+- README.mdを確認してプロジェクトの概要を把握してください。

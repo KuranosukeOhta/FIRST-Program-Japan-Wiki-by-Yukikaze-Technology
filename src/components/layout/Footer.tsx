@@ -22,22 +22,32 @@ export const Footer: React.FC = () => {
           </div>
           
           <div>
-            <h3 className="text-lg font-semibold mb-4">リンク</h3>
+            <h3 className="text-lg font-semibold mb-4">サイト内リンク</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/" className="text-blue-600 hover:underline">
-                  ホーム
+                <Link href="/wiki" className="text-blue-600 hover:underline">
+                  ページを見る
                 </Link>
               </li>
               <li>
-                <a href="#" onClick={(e) => e.preventDefault()} className="text-blue-600 hover:underline">
-                  このサイトについて
-                </a>
+                <Link href="/about" className="text-blue-600 hover:underline">
+                  Wikiについて
+                </Link>
               </li>
               <li>
-                <a href="#" onClick={(e) => e.preventDefault()} className="text-blue-600 hover:underline">
+                <Link href="/team" className="text-blue-600 hover:underline">
+                  運営団体について
+                </Link>
+              </li>
+              <li>
+                <Link href="/edit" className="text-blue-600 hover:underline">
+                  ページを書く
+                </Link>
+              </li>
+              <li>
+                <Link href="/contact" className="text-blue-600 hover:underline">
                   お問い合わせ
-                </a>
+                </Link>
               </li>
             </ul>
           </div>

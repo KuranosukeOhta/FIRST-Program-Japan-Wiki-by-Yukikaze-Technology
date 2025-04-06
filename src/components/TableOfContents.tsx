@@ -29,25 +29,20 @@ export default function TableOfContents({ toc }: TableOfContentsProps) {
   };
 
   return (
-    <div className="bg-white shadow p-4 rounded sticky top-4">
-      <h3 className="text-lg font-medium mb-4 text-gray-800">目次</h3>
+    <div className="bg-gray-300 p-4 rounded">
+      <h3 className="text-lg font-medium mb-4">目次</h3>
       <ul className="space-y-2">
-        {toc.map((item) => {
-          // levelに応じたインデントを適用
-          const indentClass = item.level === 1 ? '' : item.level === 2 ? 'ml-3' : 'ml-6';
-          return (
-            <li key={item.id} className={indentClass}>
-              <a 
-                href={`#${item.id}`} 
-                className="text-gray-700 hover:text-blue-600 hover:underline text-sm flex items-start"
-                onClick={(e) => handleClick(e, item.id)}
-              >
-                <span className="inline-block w-2 h-2 rounded-full bg-blue-500 mt-1.5 mr-2 flex-shrink-0"></span>
-                <span>{item.text}</span>
-              </a>
-            </li>
-          );
-        })}
+        {toc.map((item) => (
+          <li key={item.id}>
+            <a 
+              href={`#${item.id}`} 
+              className="text-gray-700 hover:text-blue-600 hover:underline text-sm"
+              onClick={(e) => handleClick(e, item.id)}
+            >
+              • {item.text}
+            </a>
+          </li>
+        ))}
       </ul>
     </div>
   );

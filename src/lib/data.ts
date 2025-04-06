@@ -281,7 +281,14 @@ export async function getWikiPages(params: {
   // エラー時はダミーデータを返す
   return {
     pages: [
-      { id: 'error-1', title: 'データ取得エラー', category: 'エラー', last_edited_time: new Date().toISOString() }
+      { 
+        id: 'error-1', 
+        title: 'データ取得エラー', 
+        category: 'エラー', 
+        last_edited_time: new Date().toISOString(),
+        created_time: new Date().toISOString(),
+        authors: []
+      }
     ],
     total: 1,
     page: 1,

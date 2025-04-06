@@ -7,6 +7,7 @@ import { getPageDetail, getCategories } from "@/lib/data";
 // import { NotionPage } from "@/types";
 import Link from "next/link";
 import { Search, Menu } from "lucide-react";
+import TableOfContents from "@/components/TableOfContents";
 
 interface PageProps {
   params: {
@@ -284,47 +285,8 @@ export default async function WikiDetailPage({ params }: PageProps) {
             <p className="text-center text-sm mb-4">プロフィール内容</p>
           </div>
           
-          {/* 目次 */}
-          <div className="bg-gray-300 p-4 rounded">
-            <h3 className="text-lg font-medium mb-4">目次</h3>
-            {toc.length > 0 ? (
-              <ul className="space-y-2">
-                {toc.map((item) => (
-                  <li key={item.id}>
-                    <a 
-                      href={`#${item.id}`} 
-                      className="text-gray-700 hover:text-blue-600 hover:underline text-sm"
-                      // スムーズスクロールと、ヘッダー分のオフセットを加えるため
-                      onClick={(e) => {
-                        e.preventDefault();
-                        const element = document.getElementById(item.id);
-                        if (element) {
-                          // ヘッダーの高さ + 余白を考慮
-                          const offset = 100;
-                          const elementPosition = element.getBoundingClientRect().top + window.scrollY;
-                          window.scrollTo({
-                            top: elementPosition - offset,
-                            behavior: 'smooth'
-                          });
-                          // URLにハッシュを追加
-                          window.history.pushState(null, '', `#${item.id}`);
-                        }
-                      }}
-                    >
-                      • {item.text}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <ul className="space-y-2">
-                <li><a href="#" className="text-gray-700 hover:text-blue-600 hover:underline text-sm">• はじめに</a></li>
-                <li><a href="#" className="text-gray-700 hover:text-blue-600 hover:underline text-sm">• .</a></li>
-                <li><a href="#" className="text-gray-700 hover:text-blue-600 hover:underline text-sm">• .</a></li>
-                <li><a href="#" className="text-gray-700 hover:text-blue-600 hover:underline text-sm">• .</a></li>
-              </ul>
-            )}
-          </div>
+          {/* 目次 - クライアントコンポーネント化 */}
+          <TableOfContents toc={toc} />
         </div>
       </div>
     </div>

@@ -222,76 +222,104 @@ export default async function WikiPage({
       
       {/* ページ一覧 */}
       {result.pages.length > 0 && (
-        <div className="bg-white border border-gray-200 rounded-lg divide-y divide-gray-200 shadow-sm">
-          {result.pages.map((page) => (
-            <Link key={page.id} href={`/wiki/${page.id}`}>
-              <div className="p-6 md:p-8 hover:bg-gray-50 transition-colors">
-                <div className="flex flex-wrap justify-between items-start gap-3 mb-3">
-                  <span className="px-3 py-1.5 bg-blue-100 text-blue-800 text-xs font-medium rounded">
-                    {page.category || '未分類'}
-                  </span>
-                  <span className="text-xs text-gray-500">
-                    最終更新: {new Date(page.last_edited_time).toLocaleString('ja-JP', {
-                      year: 'numeric',
-                      month: '2-digit',
-                      day: '2-digit',
-                      hour: '2-digit',
-                      minute: '2-digit'
-                    })}
-                  </span>
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {result.pages.map((page) => (
+              <Link key={page.id} href={`/wiki/${page.id}`}>
+                <div className="bg-white border border-gray-200 rounded-lg p-4 hover:bg-gray-50 transition-colors h-full shadow-sm hover:shadow">
+                  <div className="flex flex-wrap justify-between items-start gap-2 mb-2">
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+                      {page.category || '未分類'}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {new Date(page.last_edited_time).toLocaleString('ja-JP', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                      })}
+                    </span>
+                  </div>
+                  <h2 className="text-lg font-semibold text-gray-800 hover:text-blue-600 mb-1">{page.title}</h2>
+                  {page.authors && Array.isArray(page.authors) && page.authors.length > 0 && (
+                    <p className="text-xs text-gray-600 mt-1">
+                      執筆者: {page.authors.filter(author => typeof author === 'string').join(', ')}
+                    </p>
+                  )}
                 </div>
-                <h2 className="text-xl font-semibold text-gray-800 hover:text-blue-600 mb-2">{page.title}</h2>
-                {page.authors && Array.isArray(page.authors) && page.authors.length > 0 && (
-                  <p className="text-sm text-gray-600 mt-2">
-                    執筆者: {page.authors.filter(author => typeof author === 'string').join(', ')}
-                  </p>
+              </Link>
+            ))}
+          </div>
+          
+          {/* ページネーション */}
+          {result.totalPages > 1 && (
+            <div className="flex justify-center mt-8">
+              <nav className="inline-flex rounded-md shadow">
+                {/* 前のページ */}
+                {currentPage > 1 && (
+                  <Link
+                    href={generatePageLink(currentPage - 1)}
+                    className="px-3 py-2 rounded-l-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                  >
+                    前へ
+                  </Link>
                 )}
-              </div>
-            </Link>
-          ))}
-        </div>
-      )}
-      
-      {/* ページネーション */}
-      {result.totalPages > 1 && (
-        <div className="mt-12 flex justify-center">
-          <nav className="flex items-center space-x-2">
-            {currentPage > 1 && (
-              <Link
-                href={generatePageLink(currentPage - 1)}
-                className="px-5 py-3 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
-              >
-                前へ
-              </Link>
-            )}
-            
-            {[...Array(result.totalPages)].map((_, i) => {
-              const pageNum = i + 1;
-              return (
-                <Link
-                  key={pageNum}
-                  href={generatePageLink(pageNum)}
-                  className={`px-5 py-3 border rounded-md text-sm ${
-                    pageNum === currentPage
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {pageNum}
-                </Link>
-              );
-            })}
-            
-            {currentPage < result.totalPages && (
-              <Link
-                href={generatePageLink(currentPage + 1)}
-                className="px-5 py-3 border border-gray-300 rounded-md hover:bg-gray-50 text-sm"
-              >
-                次へ
-              </Link>
-            )}
-          </nav>
-        </div>
+                
+                {/* ページ番号 */}
+                {[...Array(result.totalPages)].map((_, index) => {
+                  const pageNum = index + 1;
+                  // 現在のページから前後2ページまで、または最初と最後のページを表示
+                  if (
+                    pageNum === 1 ||
+                    pageNum === result.totalPages ||
+                    Math.abs(pageNum - currentPage) <= 2
+                  ) {
+                    return (
+                      <Link
+                        key={pageNum}
+                        href={generatePageLink(pageNum)}
+                        className={`px-3 py-2 border ${
+                          pageNum === currentPage
+                            ? 'bg-blue-50 border-blue-500 text-blue-600 font-medium'
+                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        } ${
+                          pageNum === 1 ? '' : ''
+                        } ${
+                          pageNum === result.totalPages ? 'rounded-r-md' : ''
+                        }`}
+                      >
+                        {pageNum}
+                      </Link>
+                    );
+                  } else if (
+                    (pageNum === currentPage - 3 && currentPage > 4) ||
+                    (pageNum === currentPage + 3 && currentPage < result.totalPages - 3)
+                  ) {
+                    // 省略記号
+                    return (
+                      <span
+                        key={pageNum}
+                        className="px-3 py-2 border border-gray-300 bg-white text-gray-700"
+                      >
+                        ...
+                      </span>
+                    );
+                  }
+                  return null;
+                })}
+                
+                {/* 次のページ */}
+                {currentPage < result.totalPages && (
+                  <Link
+                    href={generatePageLink(currentPage + 1)}
+                    className="px-3 py-2 rounded-r-md border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
+                  >
+                    次へ
+                  </Link>
+                )}
+              </nav>
+            </div>
+          )}
+        </>
       )}
     </div>
   );

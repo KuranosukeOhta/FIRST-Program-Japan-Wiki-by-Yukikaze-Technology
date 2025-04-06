@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import SortMenu from "@/components/SortMenu";
 
-// 関連記事のインターフェイス
+// 関連ページのインターフェイス
 interface RelatedPage {
   id: string;
   title: string;
@@ -14,12 +14,12 @@ interface RelatedPage {
   created_time: string;
 }
 
-// 関連記事セクション用のprops
+// 関連ページセクション用のprops
 interface RelatedArticlesSectionProps {
   relatedPages: RelatedPage[] | undefined;
 }
 
-// 関連記事セクションコンポーネント
+// 関連ページセクションコンポーネント
 export default function RelatedArticlesSection({ relatedPages }: RelatedArticlesSectionProps) {
   const [sortedPages, setSortedPages] = useState<RelatedPage[]>([]);
   const [currentSort, setCurrentSort] = useState("lastEdited");
@@ -65,19 +65,19 @@ export default function RelatedArticlesSection({ relatedPages }: RelatedArticles
 
   return (
     <>
-      {/* 関連記事の並び替えメニュー - 関連記事がある場合のみ表示 */}
+      {/* 関連ページの並び替えメニュー - 関連ページがある場合のみ表示 */}
       {relatedPages && relatedPages.length > 0 && (
         <SortMenu 
           mode="related" 
           onSortChange={handleSortChange} 
-          title="関連記事の並び替え"
+          title="関連ページの並び替え"
           initialSort={currentSort} 
         />
       )}
       
-      {/* 関連記事一覧 */}
+      {/* 関連ページ一覧 */}
       <div className="bg-blue-50 p-3 mb-4 rounded shadow-sm">
-        <h3 className="text-center text-gray-700 font-medium mb-3">関連記事</h3>
+        <h3 className="text-center text-gray-700 font-medium mb-3">関連ページ</h3>
         
         {sortedPages.length > 0 ? (
           <div className="space-y-3">
@@ -101,7 +101,7 @@ export default function RelatedArticlesSection({ relatedPages }: RelatedArticles
           </div>
         ) : (
           <div className="bg-white p-3 rounded text-center text-gray-500 text-sm">
-            <p>関連記事がありません</p>
+            <p>関連ページがありません</p>
           </div>
         )}
       </div>

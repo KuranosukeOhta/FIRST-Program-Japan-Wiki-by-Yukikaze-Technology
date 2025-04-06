@@ -16,13 +16,13 @@ const ArticleSearch = () => {
   };
 
   return (
-    <div className="bg-gray-300 p-4 mb-4 rounded">
-      <h3 className="text-center text-gray-700 font-medium mb-2">記事検索</h3>
+    <div className="bg-blue-50 p-4 mb-4 rounded shadow-sm">
+      <h3 className="text-center text-gray-700 font-medium mb-2">ページ検索</h3>
       <form onSubmit={handleSearch} className="relative">
         <input
           type="text"
           className="w-full bg-white rounded px-3 py-2 pr-8 text-sm"
-          placeholder="記事を検索..."
+          placeholder="ページを検索..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />

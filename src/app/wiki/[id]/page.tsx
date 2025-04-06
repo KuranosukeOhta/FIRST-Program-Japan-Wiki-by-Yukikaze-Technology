@@ -21,7 +21,7 @@ interface PageProps {
   };
 }
 
-// 記事ページのメタデータを設定
+// ページページのメタデータを設定
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const pageData = await fetchPageData(params.id);
   
@@ -46,7 +46,7 @@ async function fetchPageData(id: string) {
   }
 }
 
-// 最新記事を取得する関数
+// 最新ページを取得する関数
 async function fetchLatestPages(limit = 5) {
   try {
     const result = await getLatestPages(limit);
@@ -109,7 +109,7 @@ function generateTableOfContents(blocks: any[]) {
   });
 }
 
-// 関連記事のインターフェイス
+// 関連ページのインターフェイス
 interface RelatedPage {
   id: string;
   title: string;
@@ -119,12 +119,12 @@ interface RelatedPage {
   created_time: string;
 }
 
-// 関連記事セクション用のprops
+// 関連ページセクション用のprops
 interface RelatedArticlesSectionProps {
   relatedPages: RelatedPage[] | undefined;
 }
 
-// 関連記事セクションコンポーネント
+// 関連ページセクションコンポーネント
 export function RelatedArticlesSection({ relatedPages }: RelatedArticlesSectionProps) {
   const [sortedPages, setSortedPages] = useState(relatedPages || []);
   const [currentSort, setCurrentSort] = useState("lastEdited");
@@ -158,17 +158,17 @@ export function RelatedArticlesSection({ relatedPages }: RelatedArticlesSectionP
 
   return (
     <>
-      {/* 関連記事の並び替えメニュー */}
+      {/* 関連ページの並び替えメニュー */}
       <SortMenu 
         mode="related" 
         onSortChange={handleSortChange} 
-        title="関連記事の並び替え"
+        title="関連ページの並び替え"
         initialSort={currentSort} 
       />
       
-      {/* 関連記事一覧 */}
+      {/* 関連ページ一覧 */}
       <div className="bg-blue-50 p-3 mb-4 rounded shadow-sm">
-        <h3 className="text-center text-gray-700 font-medium mb-3">カテゴリの他の記事</h3>
+        <h3 className="text-center text-gray-700 font-medium mb-3">カテゴリの他のページ</h3>
         
         {sortedPages && sortedPages.length > 0 ? (
           <div className="space-y-3">
@@ -192,7 +192,7 @@ export function RelatedArticlesSection({ relatedPages }: RelatedArticlesSectionP
           </div>
         ) : (
           <div className="bg-white p-3 rounded text-center text-gray-500 text-sm">
-            <p>他の記事がありません</p>
+            <p>他のページがありません</p>
           </div>
         )}
       </div>
@@ -283,20 +283,20 @@ export default async function WikiDetailPage({ params }: PageProps) {
       
       {/* メインコンテンツエリア - 3カラムレイアウト */}
       <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* 左サイドバー - 記事検索と記事著者リスト */}
+        {/* 左サイドバー - ページ検索とページ著者リスト */}
         <div className="md:col-span-2">
-          {/* 記事検索バー */}
+          {/* ページ検索バー */}
           <ArticleSearch />
           
           {/* グローバル並び替えメニュー */}
           <SortMenu mode="global" />
           
-          {/* 関連記事一覧 - クライアントコンポーネントを使用 */}
+          {/* 関連ページ一覧 - クライアントコンポーネントを使用 */}
           <RelatedArticlesSection relatedPages={pageData.relatedPages} />
           
-          {/* 最新の記事一覧 */}
+          {/* 最新のページ一覧 */}
           <div className="bg-blue-50 p-3 mb-4 rounded shadow-sm">
-            <h3 className="text-center text-gray-700 font-medium mb-3">最近更新された記事</h3>
+            <h3 className="text-center text-gray-700 font-medium mb-3">最近更新されたページ</h3>
             
             {latestPages && latestPages.length > 0 ? (
               <div className="space-y-3">
@@ -318,15 +318,15 @@ export default async function WikiDetailPage({ params }: PageProps) {
               </div>
             ) : (
               <div className="bg-white p-3 rounded text-center text-gray-500 text-sm">
-                <p>最新の記事がありません</p>
+                <p>最新のページがありません</p>
               </div>
             )}
           </div>
         </div>
         
-        {/* 中央カラム - 記事内容 */}
+        {/* 中央カラム - ページ内容 */}
         <div className="md:col-span-7">
-          {/* 記事タイトル */}
+          {/* ページタイトル */}
           <div className="bg-blue-50 p-5 mb-6 rounded shadow-sm">
             <h1 className="text-2xl md:text-3xl font-bold text-center">{page.title}</h1>
             {/* 執筆日と更新日を追加 */}
@@ -341,7 +341,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
             </div>
           </div>
           
-          {/* 記事内容 */}
+          {/* ページ内容 */}
           <div className="bg-white p-6 rounded shadow border border-gray-100">
             {/* 実際のNotion APIから取得したデータを表示 */}
             <div className="prose prose-blue max-w-none">
@@ -366,7 +366,7 @@ export default async function WikiDetailPage({ params }: PageProps) {
             {(!blocks || blocks.length === 0) && (
               <div className="text-center p-8 text-gray-500">
                 <p className="text-lg font-medium">コンテンツがありません</p>
-                <p className="mt-2">この記事にはまだ内容が追加されていません。</p> {/* mt-2とはmargin-topの2倍の意味、margin-topは上からの余白を表す */}
+                <p className="mt-2">このページにはまだ内容が追加されていません。</p>
               </div>
             )}
           </div>
@@ -376,18 +376,38 @@ export default async function WikiDetailPage({ params }: PageProps) {
         <div className="md:col-span-3">
           {/* 著者情報 */}
           <div className="bg-blue-50 p-4 mb-4 rounded shadow-sm">
-            <div className="flex flex-col items-center mb-4">
-              <div className="bg-blue-400 rounded-full w-16 h-16 mb-2 flex items-center justify-center text-white text-2xl font-bold">
-                {page.authors && Array.isArray(page.authors) && page.authors.length > 0 && typeof page.authors[0] === 'string' 
-                  ? page.authors[0].substring(0, 1).toUpperCase() 
-                  : '👤'}
-              </div>
-              <h3 className="text-lg font-medium text-center">
-                {page.authors && Array.isArray(page.authors) && page.authors.length > 0 
-                  ? page.authors.filter(author => typeof author === 'string').join(', ') 
-                  : '匿名編集者'}
-              </h3>
-            </div>
+            {page.authors && Array.isArray(page.authors) && page.authors.length > 0 ? (
+              <>
+                {/* 複数の著者がいる場合は横並びで表示 */}
+                <div className="flex flex-wrap justify-center gap-4 mb-4">
+                  {page.authors
+                    .filter(author => typeof author === 'string')
+                    .map((author, index) => (
+                      <div key={index} className="flex flex-col items-center">
+                        <div className="bg-blue-400 rounded-full w-12 h-12 mb-2 flex items-center justify-center text-white text-lg font-bold">
+                          {typeof author === 'string' ? author.substring(0, 1).toUpperCase() : '👤'}
+                        </div>
+                        <span className="text-sm text-gray-600">{author}</span>
+                      </div>
+                    ))
+                  }
+                </div>
+                <h3 className="text-lg font-medium text-center">
+                  編集者
+                </h3>
+              </>
+            ) : (
+              <>
+                <div className="flex flex-col items-center mb-4">
+                  <div className="bg-blue-400 rounded-full w-16 h-16 mb-2 flex items-center justify-center text-white text-2xl font-bold">
+                    👤
+                  </div>
+                  <h3 className="text-lg font-medium text-center">
+                    匿名編集者
+                  </h3>
+                </div>
+              </>
+            )}
             {/* <div className="text-center">
               <p className="text-gray-600 text-sm">記事の執筆者プロフィール(未実装)</p>
             </div> */}

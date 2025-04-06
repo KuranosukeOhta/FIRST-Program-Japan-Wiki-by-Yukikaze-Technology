@@ -266,8 +266,8 @@ export default async function WikiDetailPage({ params }: PageProps) {
             <div className="flex flex-col items-center mb-4">
               <div className="bg-blue-400 rounded-full w-16 h-16 mb-2 flex items-center justify-center text-white text-2xl font-bold">
                 {page.authors && Array.isArray(page.authors) && page.authors.length > 0 && typeof page.authors[0] === 'string' 
-                  ? page.authors[0].substring(0, 1).toUpperCase()  
-                  : '👤'} 最初の文字を大文字に変換z
+                  ? page.authors[0].substring(0, 1).toUpperCase() 
+                  : '👤'}
               </div>
               <h3 className="text-lg font-medium text-center">
                 {page.authors && Array.isArray(page.authors) && page.authors.length > 0 

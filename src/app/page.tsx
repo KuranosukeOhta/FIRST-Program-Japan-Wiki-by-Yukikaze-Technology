@@ -92,13 +92,34 @@ async function fetchLatestPages(): Promise<LatestPages> {
             category: 'チュートリアル', 
             last_edited_time: '2024-01-13T09:45:00Z',
             authors: ['佐藤次郎']
+          },
+          { 
+            id: '4', 
+            title: '日本大会レポート', 
+            category: 'イベント', 
+            last_edited_time: '2024-01-12T18:20:00Z',
+            authors: ['山本五郎']
+          },
+          { 
+            id: '5', 
+            title: 'FLL チャレンジ攻略法', 
+            category: 'FLL', 
+            last_edited_time: '2024-01-11T14:10:00Z',
+            authors: ['伊藤六郎']
+          },
+          { 
+            id: '6', 
+            title: 'ロボットデザイン基礎', 
+            category: 'チュートリアル', 
+            last_edited_time: '2024-01-10T10:10:00Z',
+            authors: ['高橋七郎']
           }
         ]
       };
     }
     
     // 本番環境では直接Supabaseからデータを取得
-    return await getLatestPages(3);
+    return await getLatestPages(6);
   } catch (error) {
     console.error('最新ページ取得エラー:', error);
     
@@ -188,22 +209,18 @@ export default async function Home() {
           <p className="text-lg text-gray-600">最新の統計情報を確認できます</p>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow md:col-span-1 lg:col-span-1">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-gray-500 font-medium">総ページ数</h3>
+        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 hover:shadow-md transition-shadow max-w-3xl mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-xl font-semibold text-gray-700">総ページ数: <span className="text-2xl text-blue-600 font-bold">{stats.totalPages}</span></h3>
+            <div className="flex items-center space-x-2">
+              <Tag className="h-5 w-5 text-purple-500" />
               <BookOpen className="h-5 w-5 text-blue-500" />
             </div>
-            <p className="text-3xl font-bold text-gray-800">{stats.totalPages}</p>
-            <p className="mt-2 text-sm text-gray-500">最終更新: {stats.timeSinceLastSync || 'なし'}</p>
           </div>
           
-          <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 col-span-1 md:col-span-1 lg:col-span-1 hover:shadow-md transition-shadow">
-            <div className="flex items-center justify-between mb-2">
-              <h3 className="text-gray-500 font-medium">カテゴリ分布</h3>
-              <Tag className="h-5 w-5 text-purple-500" />
-            </div>
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-3">
+          <div className="border-t border-gray-100 pt-4">
+            <h4 className="text-sm font-medium text-gray-500 mb-3">カテゴリ分布</h4>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               {Object.entries(stats.categoryStats || {}).map(([category, count]) => (
                 <div key={category} className="flex justify-between items-center bg-gray-50 px-3 py-2 rounded hover:bg-gray-100 transition-colors">
                   <span className="font-medium">{category}</span>
@@ -211,6 +228,9 @@ export default async function Home() {
                 </div>
               ))}
             </div>
+            {stats.timeSinceLastSync && (
+              <p className="mt-4 text-sm text-gray-500 text-right">最終更新: {stats.timeSinceLastSync}</p>
+            )}
           </div>
         </div>
       </section>

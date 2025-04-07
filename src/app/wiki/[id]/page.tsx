@@ -201,11 +201,13 @@ export default async function WikiDetailPage({ params }: PageProps) {
             {/* 執筆日と更新日を追加 */}
             <div className="mt-3 text-sm text-gray-600 text-center">
               <p>執筆日: {new Date(page.created_time).toLocaleString('ja-JP', { 
-                year: 'numeric', month: '2-digit', day: '2-digit' 
+                year: 'numeric', month: '2-digit', day: '2-digit', 
+                timeZone: 'Asia/Tokyo'
               })}</p>
               <p>更新日: {new Date(page.last_edited_time).toLocaleString('ja-JP', { 
                 year: 'numeric', month: '2-digit', day: '2-digit', 
-                hour: '2-digit', minute: '2-digit' 
+                hour: '2-digit', minute: '2-digit',
+                timeZone: 'Asia/Tokyo'
               })}</p>
             </div>
           </div>

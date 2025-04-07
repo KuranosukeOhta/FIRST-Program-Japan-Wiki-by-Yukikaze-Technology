@@ -93,7 +93,7 @@ export async function POST(request: Request) {
   } catch (e) {
     // ボディがない場合はデフォルト値を使用
     params = {
-      publishedOnly: true, // デフォルトで公開済みページのみを同期
+      publishedOnly: false, // プレビュー版は全てのページを同期
       pageSize: 10,
       maxPages: undefined, // 制限なし
       debugLog: true
@@ -183,13 +183,10 @@ export async function POST(request: Request) {
       // この取得したページバッチのログ
       console.log(`${pages.length}ページを取得しました (合計 ${totalPagesFetched}ページ)...`);
       
-      // 公開済みページのみをフィルタリング（必要な場合）
-      const filteredPages = pages.filter((page: NotionPage) => {
-        const status = extractStatus(page);
-        return status === '記事公開済';
-      });
+      // プレビュー版は全てのページを同期（フィルタリングなし）
+      const filteredPages = pages;
       
-      console.log(`${filteredPages.length}/${pages.length}ページが記事公開済ステータスです`);
+      console.log(`プレビュー版: ${filteredPages.length}ページを全て同期します（ステータスによるフィルタリングなし）`);
       
       totalPages += filteredPages.length;
       

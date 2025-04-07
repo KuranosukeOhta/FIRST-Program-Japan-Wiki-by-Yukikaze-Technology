@@ -1,0 +1,80 @@
+{
+	"info": {
+		"_postman_id": "28999226-442c-4e10-ae34-22e7ac7503a8",
+		"name": "FIRST Program Japan Wiki",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "42382533"
+	},
+	"item": [
+		{
+			"name": "同期API（公開済み記事のみ）",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer /0x8I9+FttZNIy1aBhIegrXZeJ4aJVVW2O5z0/RfMEA=",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://first-program-japan-wiki.vercel.app/api/sync-notion",
+					"protocol": "https",
+					"host": [
+						"first-program-japan-wiki",
+						"vercel",
+						"app"
+					],
+					"path": [
+						"api",
+						"sync-notion"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "同期API（プレビュー版・全記事）",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "Bearer /0x8I9+FttZNIy1aBhIegrXZeJ4aJVVW2O5z0/RfMEA=",
+						"type": "text"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "https://first-program-japan-wiki.vercel.app/api/sync-notion-preview",
+					"protocol": "https",
+					"host": [
+						"first-program-japan-wiki",
+						"vercel",
+						"app"
+					],
+					"path": [
+						"api",
+						"sync-notion-preview"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

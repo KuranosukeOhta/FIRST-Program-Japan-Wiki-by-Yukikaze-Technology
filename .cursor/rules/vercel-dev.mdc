@@ -10,3 +10,4 @@ alwaysApply: true
     fix: "use client"をBlockRendererとNotionContentコンポーネントに追加し、エクスポートを修正
 - README.mdを確認してプロジェクトの概要を把握してください。
 - 現時点でのサイトURLは https://first-program-japan-wiki.vercel.app です。
+- terminalでコマンドを使用する際は、 | catをつけるようにしてください。これによって出力を直接確認できるようになります。

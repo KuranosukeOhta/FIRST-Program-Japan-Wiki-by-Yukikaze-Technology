@@ -157,4 +157,4 @@ MITライセンス
 
 ## 開発者
 
-Yukikaze Technology
+Yukikaze Technology 

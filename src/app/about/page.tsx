@@ -2,11 +2,15 @@ import React from "react";
 import Link from "next/link";
 import { getCategories } from "@/lib/data";
 import Navigation from "@/components/Navigation";
+import { generateMetadata } from "@/utils/metadata";
 
-export const metadata = {
-  title: 'Wikiについて | FIRST Program Japan Wiki',
-  description: 'FIRST Program Japanのウィキサイトについての説明ページです。',
-};
+export const metadata = generateMetadata({
+  title: 'Wikiについて',
+  description: 'FIRST Program Japanのウィキサイトについての説明ページです。運営目的や特徴、参加方法について解説しています。',
+  pathName: '/about',
+  keywords: ['Wiki', '参加方法', 'ライセンス', '目的', '特徴'],
+  ogType: 'website',
+});
 
 export default async function AboutPage() {
   const categories = await getCategories();

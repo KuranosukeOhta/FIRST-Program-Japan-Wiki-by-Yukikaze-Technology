@@ -9,3 +9,4 @@ alwaysApply: true
     - 以下はコミットメッセージの例です；
     fix: "use client"をBlockRendererとNotionContentコンポーネントに追加し、エクスポートを修正
 - README.mdを確認してプロジェクトの概要を把握してください。
+- 現時点でのサイトURLは https://first-program-japan-wiki.vercel.app です。

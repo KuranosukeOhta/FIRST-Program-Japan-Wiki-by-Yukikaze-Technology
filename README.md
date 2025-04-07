@@ -225,6 +225,7 @@ Supabaseには以下のテーブルがあります：
 
 - `notion_pages` - Notionのページ情報
 - `notion_blocks` - ページのコンテンツブロック
+- `notion_sync_status` - 同期処理の状態管理
 
 ## デプロイ方法
 

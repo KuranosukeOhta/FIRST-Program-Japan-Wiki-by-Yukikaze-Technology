@@ -36,7 +36,7 @@ export default async function TeamPage() {
             <h2 className="text-xl font-semibold mb-4 text-gray-700">主な活動</h2>
             <ul className="list-disc pl-6 space-y-2 text-gray-600">
               <li>FIRSTプログラム参加チームへの技術サポートとメンタリング</li>
-              <li>ロボティクスワークショップの開催</li>
+              <li>地域の教育イベントへの出展・ワークショップイベントの開催</li>
               <li>教育者向けのFIRSTプログラム紹介セミナー</li>
               <li>FIRST Japan Wikiの運営・管理</li>
               <li>企業・団体とのパートナーシップ構築</li>

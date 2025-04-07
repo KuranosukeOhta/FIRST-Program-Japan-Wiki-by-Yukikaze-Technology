@@ -52,3 +52,6 @@ next-env.d.ts
 # Vercel
 .vercel/
 
+# Postman Collection
+postman_collection.json
+

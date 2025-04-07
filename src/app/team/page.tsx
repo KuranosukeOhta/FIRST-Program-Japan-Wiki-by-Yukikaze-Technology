@@ -23,7 +23,7 @@ export default async function TeamPage() {
           <h2 className="text-xl font-semibold mb-4 text-gray-700">Yukikaze Technology について</h2>
           <p className="text-gray-600 mb-4">
             Yukikaze Technologyは、日本の若者に科学技術やロボティクスの面白さを伝え、次世代のイノベーターを育成することを目指す団体です。
-            FIRSTプログラムの日本での普及・発展のために、様々な活動を行っています。
+            FIRSTプログラムの日本での普及・発展のために、様々な活動を行う北海道札幌市の学生団体です。
           </p>
           <p className="text-gray-600">
             2022年に設立され、FIRST関連イベントの開催支援、教育機関への働きかけ、情報提供などを通じて、

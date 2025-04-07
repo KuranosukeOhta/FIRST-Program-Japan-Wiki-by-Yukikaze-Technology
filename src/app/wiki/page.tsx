@@ -259,7 +259,8 @@ export default async function WikiPage({
                         {new Date(page.last_edited_time).toLocaleString('ja-JP', {
                           year: 'numeric',
                           month: '2-digit',
-                          day: '2-digit'
+                          day: '2-digit',
+                          timeZone: 'Asia/Tokyo'
                         })}
                       </span>
                     </div>

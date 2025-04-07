@@ -1,0 +1,9 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+
+- 一通りのエラーがないことが確認できたら、適切なコミットメッセージを考え、コミットして、変更の同期までを行なってください。ただし、ユーザーの許可を待ってください。
+    - 以下はコミットメッセージの例です；
+    fix: "use client"をBlockRendererとNotionContentコンポーネントに追加し、エクスポートを修正

@@ -4,6 +4,8 @@ import Link from 'next/link';
 import { Calendar, ArrowLeft, Tag, Clock, AlertCircle } from 'lucide-react';
 import NotionContent from './NotionContent';
 import { CustomLoader, ProgressLoading } from '../components/Loading';
+import { toast } from 'react-hot-toast';
+import { useRouter } from 'next/navigation';
 
 interface BlockContent {
   id: string;
@@ -59,6 +61,8 @@ function PageDetail() {
     requestUrl?: string;
     directApiRequestUrl?: string;
   }>({});
+  const [isSyncing, setIsSyncing] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     if (!pageId) return;
@@ -443,6 +447,53 @@ function PageDetail() {
 
   const title = getPageTitle();
   const category = getPageCategory();
+
+  const handleSyncClick = async () => {
+    try {
+      setIsSyncing(true);
+      const response = await fetch('/api/sync-notion');
+      const data = await response.json();
+
+      if (response.headers.get('X-Clear-Cache') === 'true') {
+        // 同期完了後にキャッシュをクリア
+        clearAllPageCache();
+        clearAllBlocksCache();
+        console.log('Cache cleared after sync');
+      }
+
+      if (data.success) {
+        toast.success('同期が完了しました');
+        // 同期後にページを再読み込み
+        router.refresh();
+      } else {
+        toast.error('同期中にエラーが発生しました');
+      }
+    } catch (error) {
+      console.error('Sync error:', error);
+      toast.error('同期中にエラーが発生しました');
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
+  // キャッシュクリアのユーティリティ関数
+  const clearAllPageCache = () => {
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.startsWith('page_')) {
+        localStorage.removeItem(key);
+      }
+    });
+  };
+
+  const clearAllBlocksCache = () => {
+    const keys = Object.keys(localStorage);
+    keys.forEach(key => {
+      if (key.startsWith('blocks_')) {
+        localStorage.removeItem(key);
+      }
+    });
+  };
 
   if (loading) {
     return (

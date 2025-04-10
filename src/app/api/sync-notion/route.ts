@@ -389,6 +389,14 @@ export async function POST(request: Request) {
       hasMorePages: hasMore,
       nextCursor: startCursor,
       errors: errors.length > 0 ? errors : null
+    }, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store',
+        'X-Clear-Cache': 'true' // クライアント側でキャッシュクリアを判断するためのカスタムヘッダー
+      }
     });
   } catch (error: any) {
     console.error('同期エラー:', error);

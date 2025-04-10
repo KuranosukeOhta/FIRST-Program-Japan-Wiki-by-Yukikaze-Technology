@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { revalidatePath, revalidateTag } from 'next/cache';
 import { extractTitle, extractCategory, extractAuthors, extractStatus, isPublished, getNotionPageUrl } from '@/lib/notion';
 import { createSupabaseAdmin } from '@/lib/supabase';
 import { 
@@ -380,6 +381,19 @@ export async function POST(request: Request) {
         .eq('id', syncId);
     }
     
+    // データキャッシュを再検証
+    console.log('Vercelデータキャッシュを再検証しています...');
+    
+    // 主要なページを再検証
+    revalidatePath('/');
+    revalidatePath('/wiki');
+    
+    // タグベースの再検証
+    revalidateTag('pages');
+    revalidateTag('wiki');
+    
+    console.log('データキャッシュの再検証が完了しました');
+    
     return NextResponse.json({
       success: true,
       pagesCount,
@@ -388,23 +402,32 @@ export async function POST(request: Request) {
       processedPages,
       hasMorePages: hasMore,
       nextCursor: startCursor,
-      errors: errors.length > 0 ? errors : null
-    }, {
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0',
-        'Surrogate-Control': 'no-store',
-        'X-Clear-Cache': 'true' // クライアント側でキャッシュクリアを判断するためのカスタムヘッダー
+      errors: errors.length > 0 ? errors : null,
+      cache: {
+        revalidated: true,
+        paths: ['/', '/wiki'],
+        tags: ['pages', 'wiki']
       }
     });
   } catch (error: any) {
     console.error('同期エラー:', error);
     
+    try {
+      // エラー発生時でもキャッシュ再検証を試みる
+      console.log('エラー発生後もキャッシュ再検証を試みます...');
+      revalidatePath('/');
+      revalidatePath('/wiki');
+    } catch (cacheError) {
+      console.error('キャッシュ再検証エラー:', cacheError);
+    }
+    
     return NextResponse.json({
       error: 'データ同期中にエラーが発生しました',
       details: error.message,
-      stack: error.stack
+      stack: error.stack,
+      cache: {
+        revalidated: false
+      }
     }, { status: 500 });
   }
 } 
